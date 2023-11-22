@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.nsu.server.configuration.security.jwt.JwtUtils;
 import ru.nsu.server.payload.requests.GroupRequest;
 import ru.nsu.server.payload.requests.RegistrationRequest;
+import ru.nsu.server.payload.requests.RoomRequest;
 import ru.nsu.server.payload.requests.SubjectRequest;
 import ru.nsu.server.payload.response.MessageResponse;
 import ru.nsu.server.services.RefreshTokenService;
@@ -92,7 +93,7 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Пользователь успешно зарегистрирован с паролем:" + newUserPassword));
     }
 
-    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/register_admin")
     @Transactional
     public ResponseEntity<?> registerNewAdmin(@Valid @RequestBody RegistrationRequest registrationRequest) {
@@ -133,5 +134,17 @@ public class AdminController {
         }
         timetableService.saveNewSubject(subjectName);
         return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно сохранен"));
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/create_room")
+    @Transactional
+    public ResponseEntity<?> createRoom(@Valid @RequestBody RoomRequest roomRequest) {
+        String roomName = roomRequest.getName();
+        if (timetableService.ifExistByRoomName(roomName)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая комната уже существует."));
+        }
+        timetableService.saveNewRoom(roomName, roomRequest.getPurpose());
+        return ResponseEntity.ok(new MessageResponse("Комната " + roomName + " успешно сохранен"));
     }
 }

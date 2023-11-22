@@ -34,23 +34,23 @@ public class Constraint {
     @Column(name = "teacher")
     private String teacher;
 
-    @Column(name = "faculty")
-    private String faculty;
-
-    @Column(name = "course")
-    private int course;
-
     @Column(name = "room")
     private String room;
 
     @JsonFormat(timezone = "Asia/Novosibirsk")
-    @Column(name = "start_time")
-    private Date startTime;
+    @Column(name = "unavailable_start_time")
+    private Date unavailableStartTime;
 
     @JsonFormat(timezone = "Asia/Novosibirsk")
-    @Column(name = "end_time")
-    private Date endTime;
+    @Column(name = "unavailable_end_time")
+    private Date unavailableEndTime;
 
     @Column(name = "pair_type")
     private String pairType;
+
+//    @Column(name = "faculty")
+//    private String faculty;
+//
+//    @Column(name = "course")
+//    private int course;
 }

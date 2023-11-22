@@ -50,7 +50,7 @@ public class User {
     @Column(name = "phone", unique = true)
     private String phone;
 
-    @Column(name = "full_name")
+    @Column(name = "full_name", unique = true)
     private String fullName;
 
     @NotBlank

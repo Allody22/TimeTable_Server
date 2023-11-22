@@ -4,11 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.nsu.server.model.Group;
+import ru.nsu.server.model.Room;
 import ru.nsu.server.model.Subject;
 import ru.nsu.server.model.constants.ERole;
 import ru.nsu.server.model.current.WeekTimetable;
 import ru.nsu.server.repository.GroupRepository;
 import ru.nsu.server.repository.RoleRepository;
+import ru.nsu.server.repository.RoomRepository;
 import ru.nsu.server.repository.SubjectRepository;
 import ru.nsu.server.repository.UserRepository;
 import ru.nsu.server.repository.WeekTimeTableRepository;
@@ -22,6 +24,8 @@ public class TimetableService {
 
     private final RoleRepository roleRepository;
 
+    private final RoomRepository roomRepository;
+
     private final WeekTimeTableRepository weekTimeTableRepository;
 
     private final GroupRepository groupRepository;
@@ -31,8 +35,9 @@ public class TimetableService {
     @Autowired
     public TimetableService(UserRepository userRepository, RoleRepository roleRepository,
                             WeekTimeTableRepository weekTimeTableRepository, GroupRepository groupRepository,
-                            SubjectRepository subjectRepository) {
+                            SubjectRepository subjectRepository, RoomRepository roomRepository) {
         this.roleRepository = roleRepository;
+        this.roomRepository = roomRepository;
         this.subjectRepository = subjectRepository;
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
@@ -92,7 +97,23 @@ public class TimetableService {
     }
 
     public List<String> getAllTeachers() {
-        var list = userRepository.findAllUsersByRole(ERole.ROLE_TEACHER);
-        return list;
+        return userRepository.findAllUsersByRole(ERole.ROLE_TEACHER);
     }
+
+    public List<Room> getAllRooms() {
+        return roomRepository.getAll();
+    }
+
+    public boolean ifExistByRoomName(String roomName) {
+        return roomRepository.existsByName(roomName);
+    }
+
+    @Transactional
+    public void saveNewRoom(String name, String purpose) {
+        Room room = new Room();
+        room.setName(name);
+        room.setPurpose(purpose);
+        roomRepository.save(room);
+    }
+
 }

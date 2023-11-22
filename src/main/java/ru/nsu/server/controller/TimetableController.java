@@ -53,6 +53,12 @@ public class TimetableController {
         return ResponseEntity.ok(timetableService.getAllTeachers());
     }
 
+    @GetMapping("/all_rooms")
+    @Transactional
+    public ResponseEntity<?> getAllRooms() {
+        return ResponseEntity.ok(timetableService.getAllRooms());
+    }
+
     @GetMapping("/group/{group}")
     @Transactional
     public ResponseEntity<?> getGroupTimetable(@PathVariable @Valid @NotBlank String group) {
