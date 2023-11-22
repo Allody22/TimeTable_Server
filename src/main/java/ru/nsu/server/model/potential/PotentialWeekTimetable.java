@@ -12,11 +12,12 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.util.Date;
 
+
 @Entity
-@Table(name = "potential_constraint")
+@Table(name = "potential_week_timetable")
 @NoArgsConstructor
 @Data
-public class PotentialConstraint {
+public class PotentialWeekTimetable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -14,6 +14,7 @@ import ru.nsu.server.repository.UserRepository;
 @Service
 @EnableTransactionManagement
 public class UserDetailsServiceImpl implements UserDetailsService {
+
     private final UserRepository userRepository;
 
     public UserDetailsServiceImpl(UserRepository userRepository) {

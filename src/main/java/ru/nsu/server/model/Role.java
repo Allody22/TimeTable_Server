@@ -2,12 +2,8 @@ package ru.nsu.server.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import ru.nsu.server.model.constants.ERole;
 
 import javax.persistence.Column;
