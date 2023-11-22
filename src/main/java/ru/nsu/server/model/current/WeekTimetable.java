@@ -41,6 +41,9 @@ public class WeekTimetable {
     @Column(name = "course")
     private int course;
 
+    @Column(name = "pair_number")
+    private int pairNumber;
+
     @Column(name = "room")
     private String room;
 

@@ -16,5 +16,7 @@ public class RoomRequest {
     private String name;
 
     @NotBlank
-    private String purpose;
+    private String type;
+
+    private int capacity;
 }

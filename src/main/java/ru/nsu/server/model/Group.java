@@ -28,4 +28,7 @@ public class Group {
 
     @Column(name = "course")
     private int course;
+
+    @Column(name = "students_number")
+    private int studentsNumber;
 }

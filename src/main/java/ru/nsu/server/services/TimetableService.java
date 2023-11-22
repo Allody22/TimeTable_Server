@@ -3,12 +3,10 @@ package ru.nsu.server.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.nsu.server.model.Group;
 import ru.nsu.server.model.Room;
 import ru.nsu.server.model.Subject;
 import ru.nsu.server.model.constants.ERole;
 import ru.nsu.server.model.current.WeekTimetable;
-import ru.nsu.server.repository.GroupRepository;
 import ru.nsu.server.repository.RoleRepository;
 import ru.nsu.server.repository.RoomRepository;
 import ru.nsu.server.repository.SubjectRepository;
@@ -28,18 +26,15 @@ public class TimetableService {
 
     private final WeekTimeTableRepository weekTimeTableRepository;
 
-    private final GroupRepository groupRepository;
-
     private final SubjectRepository subjectRepository;
 
     @Autowired
     public TimetableService(UserRepository userRepository, RoleRepository roleRepository,
-                            WeekTimeTableRepository weekTimeTableRepository, GroupRepository groupRepository,
+                            WeekTimeTableRepository weekTimeTableRepository,
                             SubjectRepository subjectRepository, RoomRepository roomRepository) {
         this.roleRepository = roleRepository;
         this.roomRepository = roomRepository;
         this.subjectRepository = subjectRepository;
-        this.groupRepository = groupRepository;
         this.userRepository = userRepository;
         this.weekTimeTableRepository = weekTimeTableRepository;
     }
@@ -58,27 +53,6 @@ public class TimetableService {
 
     public List<WeekTimetable> getRoomTimetable(String room) {
         return weekTimeTableRepository.getWeekTimetablesByRoom(room);
-    }
-
-    @Transactional
-    public void saveNewGroup(String groupNumber, String faculty, int course) {
-        Group group = new Group();
-        group.setGroupNumber(groupNumber);
-        group.setCourse(course);
-        group.setFaculty(faculty);
-        groupRepository.save(group);
-    }
-
-    public List<Group> getAllGroups() {
-        return groupRepository.getAll();
-    }
-
-    public List<Group> getAllGroupsByFaculty(String faculty) {
-        return groupRepository.getAllByFacultyContaining(faculty);
-    }
-
-    public boolean ifExistByGroupNumber(String groupNumber) {
-        return groupRepository.existsByGroupNumber(groupNumber);
     }
 
     @Transactional
@@ -109,10 +83,11 @@ public class TimetableService {
     }
 
     @Transactional
-    public void saveNewRoom(String name, String purpose) {
+    public void saveNewRoom(String name, String type, int capacity) {
         Room room = new Room();
         room.setName(name);
-        room.setPurpose(purpose);
+        room.setCapacity(capacity);
+        room.setType(type);
         roomRepository.save(room);
     }
 

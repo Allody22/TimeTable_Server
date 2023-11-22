@@ -19,6 +19,7 @@ import ru.nsu.server.payload.requests.RegistrationRequest;
 import ru.nsu.server.payload.requests.RoomRequest;
 import ru.nsu.server.payload.requests.SubjectRequest;
 import ru.nsu.server.payload.response.MessageResponse;
+import ru.nsu.server.services.GroupService;
 import ru.nsu.server.services.RefreshTokenService;
 import ru.nsu.server.services.TimetableService;
 import ru.nsu.server.services.UserService;
@@ -43,20 +44,70 @@ public class AdminController {
 
     private final TimetableService timetableService;
 
+    private final GroupService groupService;
+
     @Autowired
     public AdminController(
             AuthenticationManager authenticationManager,
             TimetableService timetableService,
             PasswordEncoder encoder,
             UserService userService,
+            GroupService groupService,
             JwtUtils jwtUtils,
             RefreshTokenService refreshTokenService) {
         this.authenticationManager = authenticationManager;
         this.encoder = encoder;
+        this.groupService = groupService;
         this.timetableService = timetableService;
         this.userService = userService;
         this.jwtUtils = jwtUtils;
         this.refreshTokenService = refreshTokenService;
+    }
+
+//    @PreAuthorize("hasRole('ADMINISTRATOR')")
+//    @PostMapping("/create_constraint")
+//    @Transactional
+//    public ResponseEntity<?> createGroup(@Valid @RequestBody ConstraintTimeRequest constraintTimeRequest) {
+//
+//        timetableService.saveNewGroup(groupNumber, groupRequest.getFaculty(), groupRequest.getCourse());
+//        return ResponseEntity.ok(new MessageResponse("Группа " + groupNumber + " успешно сохранена"));
+//    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/create_group")
+    @Transactional
+    public ResponseEntity<?> createGroup(@Valid @RequestBody GroupRequest groupRequest) {
+        String groupNumber = groupRequest.getGroupNumber();
+
+        if (groupService.ifExistByGroupNumber(groupNumber)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая группа уже существует."));
+        }
+        groupService.saveNewGroup(groupNumber, groupRequest.getFaculty(), groupRequest.getCourse(), groupRequest.getStudentsNumber());
+        return ResponseEntity.ok(new MessageResponse("Группа " + groupNumber + " успешно сохранена"));
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/create_subject")
+    @Transactional
+    public ResponseEntity<?> createSubject(@Valid @RequestBody SubjectRequest subjectRequest) {
+        String subjectName = subjectRequest.getName();
+        if (timetableService.ifExistBySubjectName(subjectName)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой предмет уже существует."));
+        }
+        timetableService.saveNewSubject(subjectName);
+        return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно сохранен"));
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/create_room")
+    @Transactional
+    public ResponseEntity<?> createRoom(@Valid @RequestBody RoomRequest roomRequest) {
+        String roomName = roomRequest.getName();
+        if (timetableService.ifExistByRoomName(roomName)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая комната уже существует."));
+        }
+        timetableService.saveNewRoom(roomName, roomRequest.getType(), roomRequest.getCapacity());
+        return ResponseEntity.ok(new MessageResponse("Комната " + roomName + " успешно сохранен"));
     }
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")
@@ -108,43 +159,5 @@ public class AdminController {
 
         log.info("admin password:" + newUserPassword);
         return ResponseEntity.ok(new MessageResponse("Пользователь успешно зарегистрирован с паролем:" + newUserPassword));
-    }
-
-
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PostMapping("/create_group")
-    @Transactional
-    public ResponseEntity<?> createGroup(@Valid @RequestBody GroupRequest groupRequest) {
-        String groupNumber = groupRequest.getGroupNumber();
-
-        if (timetableService.ifExistByGroupNumber(groupNumber)) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая группа уже существует."));
-        }
-        timetableService.saveNewGroup(groupNumber, groupRequest.getFaculty(), groupRequest.getCourse());
-        return ResponseEntity.ok(new MessageResponse("Группа " + groupNumber + " успешно сохранена"));
-    }
-
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PostMapping("/create_subject")
-    @Transactional
-    public ResponseEntity<?> createSubject(@Valid @RequestBody SubjectRequest subjectRequest) {
-        String subjectName = subjectRequest.getName();
-        if (timetableService.ifExistBySubjectName(subjectName)) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой предмет уже существует."));
-        }
-        timetableService.saveNewSubject(subjectName);
-        return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно сохранен"));
-    }
-
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PostMapping("/create_room")
-    @Transactional
-    public ResponseEntity<?> createRoom(@Valid @RequestBody RoomRequest roomRequest) {
-        String roomName = roomRequest.getName();
-        if (timetableService.ifExistByRoomName(roomName)) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая комната уже существует."));
-        }
-        timetableService.saveNewRoom(roomName, roomRequest.getPurpose());
-        return ResponseEntity.ok(new MessageResponse("Комната " + roomName + " успешно сохранен"));
     }
 }

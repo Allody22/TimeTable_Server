@@ -19,4 +19,6 @@ public class GroupRequest {
     private String faculty;
 
     private int course;
+
+    private int studentsNumber;
 }

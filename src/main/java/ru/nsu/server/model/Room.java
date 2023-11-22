@@ -23,6 +23,9 @@ public class Room {
     @Column(name = "name", unique = true)
     private String name;
 
-    @Column(name = "purpose")
-    private String purpose; //для лекции, терминальная и тп
+    @Column(name = "type")
+    private String type; //для лекции, терминальная и тп
+
+    @Column(name = "capacity")
+    private int capacity; //для лекции, терминальная и тп
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.nsu.server.services.GroupService;
 import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
@@ -23,22 +24,25 @@ public class TimetableController {
 
     private final TimetableService timetableService;
 
+    private final GroupService groupService;
+
     @Autowired
     public TimetableController(
-            TimetableService timetableService) {
+            TimetableService timetableService, GroupService groupService) {
+        this.groupService = groupService;
         this.timetableService = timetableService;
     }
 
     @GetMapping("/all_groups")
     @Transactional
     public ResponseEntity<?> getAllGroups() {
-        return ResponseEntity.ok(timetableService.getAllGroups());
+        return ResponseEntity.ok(groupService.getAllGroups());
     }
 
     @GetMapping("/faculty_groups/{faculty}")
     @Transactional
     public ResponseEntity<?> getAllGroupsOfFaculty(@PathVariable @Valid @NotBlank String faculty) {
-        return ResponseEntity.ok(timetableService.getAllGroupsByFaculty(faculty));
+        return ResponseEntity.ok(groupService.getAllGroupsByFaculty(faculty));
     }
 
     @GetMapping("/all_subjects")

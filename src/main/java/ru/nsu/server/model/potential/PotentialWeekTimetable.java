@@ -44,6 +44,9 @@ public class PotentialWeekTimetable {
     @Column(name = "room")
     private String room;
 
+    @Column(name = "pair_number")
+    private int pairNumber;
+
     @JsonFormat(timezone = "Asia/Novosibirsk")
     @Column(name = "start_time")
     private Date startTime;
