@@ -11,18 +11,18 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "subjects")
+@Table(name = "constraints_names")
 @NoArgsConstructor
 @Data
-public class Subject {
+public class ConstraintsNames {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", unique = true)
+    @Column(name = "name")
     private String name;
 
-    @Column(name = "times_in_a_week")
-    private int timesInAWeek;
+    @Column(name = "ru_name")
+    private String ruName;
 }

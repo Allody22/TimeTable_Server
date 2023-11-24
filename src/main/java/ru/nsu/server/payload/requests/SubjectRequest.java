@@ -15,4 +15,5 @@ public class SubjectRequest {
     @NotBlank
     private String name;
 
+    private int timesInAWeek;
 }

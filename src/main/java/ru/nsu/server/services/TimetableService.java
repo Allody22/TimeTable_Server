@@ -3,12 +3,9 @@ package ru.nsu.server.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.nsu.server.model.Room;
 import ru.nsu.server.model.Subject;
 import ru.nsu.server.model.constants.ERole;
 import ru.nsu.server.model.current.WeekTimetable;
-import ru.nsu.server.repository.RoleRepository;
-import ru.nsu.server.repository.RoomRepository;
 import ru.nsu.server.repository.SubjectRepository;
 import ru.nsu.server.repository.UserRepository;
 import ru.nsu.server.repository.WeekTimeTableRepository;
@@ -20,20 +17,14 @@ public class TimetableService {
 
     private final UserRepository userRepository;
 
-    private final RoleRepository roleRepository;
-
-    private final RoomRepository roomRepository;
-
     private final WeekTimeTableRepository weekTimeTableRepository;
 
     private final SubjectRepository subjectRepository;
 
     @Autowired
-    public TimetableService(UserRepository userRepository, RoleRepository roleRepository,
+    public TimetableService(UserRepository userRepository,
                             WeekTimeTableRepository weekTimeTableRepository,
-                            SubjectRepository subjectRepository, RoomRepository roomRepository) {
-        this.roleRepository = roleRepository;
-        this.roomRepository = roomRepository;
+                            SubjectRepository subjectRepository) {
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
         this.weekTimeTableRepository = weekTimeTableRepository;
@@ -56,9 +47,10 @@ public class TimetableService {
     }
 
     @Transactional
-    public void saveNewSubject(String name) {
+    public void saveNewSubject(String name, int timesInAWeek) {
         Subject subject = new Subject();
         subject.setName(name);
+        subject.setTimesInAWeek(timesInAWeek);
         subjectRepository.save(subject);
     }
 
@@ -73,22 +65,4 @@ public class TimetableService {
     public List<String> getAllTeachers() {
         return userRepository.findAllUsersByRole(ERole.ROLE_TEACHER);
     }
-
-    public List<Room> getAllRooms() {
-        return roomRepository.getAll();
-    }
-
-    public boolean ifExistByRoomName(String roomName) {
-        return roomRepository.existsByName(roomName);
-    }
-
-    @Transactional
-    public void saveNewRoom(String name, String type, int capacity) {
-        Room room = new Room();
-        room.setName(name);
-        room.setCapacity(capacity);
-        room.setType(type);
-        roomRepository.save(room);
-    }
-
 }

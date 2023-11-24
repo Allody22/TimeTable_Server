@@ -21,6 +21,7 @@ import ru.nsu.server.payload.requests.SubjectRequest;
 import ru.nsu.server.payload.response.MessageResponse;
 import ru.nsu.server.services.GroupService;
 import ru.nsu.server.services.RefreshTokenService;
+import ru.nsu.server.services.RoomService;
 import ru.nsu.server.services.TimetableService;
 import ru.nsu.server.services.UserService;
 
@@ -46,6 +47,8 @@ public class AdminController {
 
     private final GroupService groupService;
 
+    private final RoomService roomService;
+
     @Autowired
     public AdminController(
             AuthenticationManager authenticationManager,
@@ -53,10 +56,11 @@ public class AdminController {
             PasswordEncoder encoder,
             UserService userService,
             GroupService groupService,
-            JwtUtils jwtUtils,
+            JwtUtils jwtUtils, RoomService roomService,
             RefreshTokenService refreshTokenService) {
         this.authenticationManager = authenticationManager;
         this.encoder = encoder;
+        this.roomService = roomService;
         this.groupService = groupService;
         this.timetableService = timetableService;
         this.userService = userService;
@@ -94,7 +98,7 @@ public class AdminController {
         if (timetableService.ifExistBySubjectName(subjectName)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой предмет уже существует."));
         }
-        timetableService.saveNewSubject(subjectName);
+        timetableService.saveNewSubject(subjectName, subjectRequest.getTimesInAWeek());
         return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно сохранен"));
     }
 
@@ -103,10 +107,10 @@ public class AdminController {
     @Transactional
     public ResponseEntity<?> createRoom(@Valid @RequestBody RoomRequest roomRequest) {
         String roomName = roomRequest.getName();
-        if (timetableService.ifExistByRoomName(roomName)) {
+        if (roomService.ifExistByRoomName(roomName)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая комната уже существует."));
         }
-        timetableService.saveNewRoom(roomName, roomRequest.getType(), roomRequest.getCapacity());
+        roomService.saveNewRoom(roomName, roomRequest.getType(), roomRequest.getCapacity());
         return ResponseEntity.ok(new MessageResponse("Комната " + roomName + " успешно сохранен"));
     }
 

@@ -5,39 +5,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.nsu.server.model.Group;
 import ru.nsu.server.repository.GroupRepository;
-import ru.nsu.server.repository.RoleRepository;
-import ru.nsu.server.repository.RoomRepository;
-import ru.nsu.server.repository.SubjectRepository;
-import ru.nsu.server.repository.UserRepository;
-import ru.nsu.server.repository.WeekTimeTableRepository;
 
 import java.util.List;
 
 @Service
 public class GroupService {
 
-    private final UserRepository userRepository;
-
-    private final RoleRepository roleRepository;
-
-    private final RoomRepository roomRepository;
-
-    private final WeekTimeTableRepository weekTimeTableRepository;
-
     private final GroupRepository groupRepository;
 
-    private final SubjectRepository subjectRepository;
 
     @Autowired
-    public GroupService(UserRepository userRepository, RoleRepository roleRepository,
-                        WeekTimeTableRepository weekTimeTableRepository, GroupRepository groupRepository,
-                        SubjectRepository subjectRepository, RoomRepository roomRepository) {
-        this.roleRepository = roleRepository;
-        this.roomRepository = roomRepository;
-        this.subjectRepository = subjectRepository;
+    public GroupService(GroupRepository groupRepository) {
         this.groupRepository = groupRepository;
-        this.userRepository = userRepository;
-        this.weekTimeTableRepository = weekTimeTableRepository;
     }
 
     @Transactional

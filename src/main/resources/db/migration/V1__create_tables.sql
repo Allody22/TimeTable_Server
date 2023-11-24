@@ -4,6 +4,19 @@ CREATE TABLE roles
     name VARCHAR(30) NOT NULL
 );
 
+CREATE TABLE constraints_names
+(
+    id      SERIAL PRIMARY KEY,
+    name    VARCHAR(60) NOT NULL,
+    ru_name VARCHAR(60) NOT NULL
+);
+
+CREATE TABLE faculties
+(
+    id   SERIAL PRIMARY KEY,
+    name VARCHAR(80) NOT NULL
+);
+
 CREATE TABLE users
 (
     id            SERIAL PRIMARY KEY,

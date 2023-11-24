@@ -11,10 +11,10 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "subjects")
+@Table(name = "faculties")
 @NoArgsConstructor
 @Data
-public class Subject {
+public class Faculty {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,6 +23,4 @@ public class Subject {
     @Column(name = "name", unique = true)
     private String name;
 
-    @Column(name = "times_in_a_week")
-    private int timesInAWeek;
 }

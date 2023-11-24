@@ -27,5 +27,5 @@ public class Room {
     private String type; //для лекции, терминальная и тп
 
     @Column(name = "capacity")
-    private int capacity; //для лекции, терминальная и тп
+    private int capacity; //сколько людей влезает
 }
