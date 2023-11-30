@@ -1,6 +1,8 @@
 package ru.nsu.server.services;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.nsu.server.model.current.Constraint;
 import ru.nsu.server.repository.ConstraintNamesRepository;
 import ru.nsu.server.repository.ConstraintRepository;
 import ru.nsu.server.repository.PotentialConstraintRepository;
@@ -31,5 +33,15 @@ public class ConstraintService {
     public List<String> getAllConstraintsEng() {
         return constraintNamesRepository.getAllEngNames()
                 .orElse(null);
+    }
+
+    public boolean ifExistConstraintRu(String name) {
+        return constraintNamesRepository.existsByRuName(name);
+    }
+
+    @Transactional
+    public void saveNewConstraint() {
+        Constraint constraint = new Constraint();
+        constraintRepository.save(constraint);
     }
 }

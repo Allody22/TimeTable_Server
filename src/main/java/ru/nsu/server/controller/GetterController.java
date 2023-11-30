@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.nsu.server.services.ConstraintService;
-import ru.nsu.server.services.GroupService;
-import ru.nsu.server.services.RoomService;
+import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
 import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
@@ -26,26 +25,22 @@ public class GetterController {
 
     private final TimetableService timetableService;
 
-    private final GroupService groupService;
-
-    private final RoomService roomService;
+    private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
     private final ConstraintService constraintService;
 
     @Autowired
     public GetterController(
-            TimetableService timetableService, GroupService groupService,
-            RoomService roomService, ConstraintService constraintService) {
-        this.roomService = roomService;
+            TimetableService timetableService, RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService, ConstraintService constraintService) {
+        this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.constraintService = constraintService;
-        this.groupService = groupService;
         this.timetableService = timetableService;
     }
 
     @GetMapping("/all_groups")
     @Transactional
     public ResponseEntity<?> getAllGroups() {
-        return ResponseEntity.ok(groupService.getAllGroups());
+        return ResponseEntity.ok(roomGroupTeacherSubjectPlanService.getAllGroups());
     }
 
     @GetMapping("/all_ru_constraints")
@@ -63,25 +58,25 @@ public class GetterController {
     @GetMapping("/faculty_groups/{faculty}")
     @Transactional
     public ResponseEntity<?> getAllGroupsOfFaculty(@PathVariable @Valid @NotBlank String faculty) {
-        return ResponseEntity.ok(groupService.getAllGroupsByFaculty(faculty));
+        return ResponseEntity.ok(roomGroupTeacherSubjectPlanService.getAllGroupsByFaculty(faculty));
     }
 
     @GetMapping("/all_subjects")
     @Transactional
     public ResponseEntity<?> getAllSubjects() {
-        return ResponseEntity.ok(timetableService.getAllSubjects());
+        return ResponseEntity.ok(roomGroupTeacherSubjectPlanService.getAllSubjects());
     }
 
     @GetMapping("/all_teachers")
     @Transactional
     public ResponseEntity<?> getAllTeachers() {
-        return ResponseEntity.ok(timetableService.getAllTeachers());
+        return ResponseEntity.ok(roomGroupTeacherSubjectPlanService.getAllTeachers());
     }
 
     @GetMapping("/all_rooms")
     @Transactional
     public ResponseEntity<?> getAllRooms() {
-        return ResponseEntity.ok(roomService.getAllRooms());
+        return ResponseEntity.ok(roomGroupTeacherSubjectPlanService.getAllRooms());
     }
 
 }

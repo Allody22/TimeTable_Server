@@ -22,6 +22,9 @@ public class Constraint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "constraint_name")
+    private int constraintName;
+
     @Column(name = "day_number")
     private int dayNumber;
 

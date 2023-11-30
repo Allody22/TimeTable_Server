@@ -19,4 +19,8 @@ public interface ConstraintNamesRepository extends JpaRepository<ConstraintsName
     @Transactional
     @Query(value = "SELECT name FROM constraints_names", nativeQuery = true)
     Optional<List<String>> getAllEngNames();
+
+    boolean existsByName(String name);
+
+    boolean existsByRuName(String name);
 }

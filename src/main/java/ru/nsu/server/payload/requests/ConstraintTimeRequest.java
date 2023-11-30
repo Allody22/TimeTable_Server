@@ -12,6 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 public class ConstraintTimeRequest {
 
+    private String constraintName;
+
     private String subjectName;
 
     private List<Integer> allowedPairNumber;
