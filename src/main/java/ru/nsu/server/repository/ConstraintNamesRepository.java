@@ -23,4 +23,6 @@ public interface ConstraintNamesRepository extends JpaRepository<ConstraintsName
     boolean existsByName(String name);
 
     boolean existsByRuName(String name);
+
+    Optional<ConstraintsNames> findConstraintsNamesByRuName(String ruName);
 }

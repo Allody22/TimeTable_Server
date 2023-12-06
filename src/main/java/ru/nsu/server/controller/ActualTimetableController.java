@@ -18,17 +18,22 @@ import javax.validation.constraints.NotBlank;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @Slf4j
-@RequestMapping("/timetable")
-public class TimetableController {
+@RequestMapping("/timetable/actual")
+public class ActualTimetableController {
 
     private final TimetableService timetableService;
 
     @Autowired
-    public TimetableController(
+    public ActualTimetableController(
             TimetableService timetableService) {
         this.timetableService = timetableService;
     }
 
+    @GetMapping("/all")
+    @Transactional
+    public ResponseEntity<?> getAll() {
+        return ResponseEntity.ok(timetableService.getAllTimeTable());
+    }
 
     @GetMapping("/group/{group}")
     @Transactional

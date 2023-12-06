@@ -7,8 +7,8 @@ CREATE TABLE roles
 CREATE TABLE constraints_names
 (
     id      SERIAL PRIMARY KEY,
-    name    VARCHAR(60) NOT NULL,
-    ru_name VARCHAR(60) NOT NULL
+    name    VARCHAR(100) NOT NULL,
+    ru_name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE faculties

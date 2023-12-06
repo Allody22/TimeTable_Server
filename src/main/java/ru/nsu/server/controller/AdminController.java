@@ -4,7 +4,6 @@ package ru.nsu.server.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,7 +40,7 @@ public class AdminController {
     }
 
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_group")
     @Transactional
     public ResponseEntity<?> createGroup(@Valid @RequestBody GroupRequest groupRequest) {
@@ -54,7 +53,7 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Группа " + groupNumber + " успешно сохранена"));
     }
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_subject")
     @Transactional
     public ResponseEntity<?> createSubject(@Valid @RequestBody SubjectRequest subjectRequest) {
@@ -66,7 +65,7 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно сохранен"));
     }
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_room")
     @Transactional
     public ResponseEntity<?> createRoom(@Valid @RequestBody RoomRequest roomRequest) {
@@ -78,7 +77,7 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Комната " + roomName + " успешно сохранен"));
     }
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_plan")
     @Transactional
     public ResponseEntity<?> createPlan(@Valid @RequestBody PlanRequest planRequest) {
@@ -87,7 +86,7 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("План успешно сохранен"));
     }
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/register_student")
     @Transactional
     public ResponseEntity<?> registerNewStudent(@Valid @RequestBody RegistrationRequest registrationRequest) {
@@ -104,7 +103,7 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Пользователь успешно зарегистрирован с паролем:" + newUserPassword));
     }
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/register_teacher")
     @Transactional
     public ResponseEntity<?> registerNewTeacher(@Valid @RequestBody RegistrationRequest registrationRequest) {
@@ -120,7 +119,7 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Пользователь успешно зарегистрирован с паролем:" + newUserPassword));
     }
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/register_admin")
     @Transactional
     public ResponseEntity<?> registerNewAdmin(@Valid @RequestBody RegistrationRequest registrationRequest) {
