@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +19,7 @@ import ru.nsu.server.payload.response.MessageResponse;
 import ru.nsu.server.services.ConstraintService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -45,39 +48,17 @@ public class ConstraintController {
         String constraintNameRu = constraintRequest.getConstraintNameRu();
         String constraintNameEng = (constraintService.findConstraintByRuName(constraintNameRu)
                 .orElseThrow(() -> new NotInDataBaseException("Такого ограничения не существует или оно еще не поддерживается: " + constraintNameRu))).getName();
-        switch (constraintNameEng) {
-            case "number_of_teaching_days" -> {
-                constraintService.saveNewNumberOfTeachingDays(constraintRequest.getTeacher(),
-                        constraintRequest.getNumber());
-                return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
-            }
-            case "forbidden_period_for_teacher" -> {
-                constraintService.saveNewForbiddenPeriodForTeacher(constraintRequest.getDay(), constraintRequest.getTeacher(), constraintRequest.getPeriod());
-                return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
-            }
-            case "forbidden_period_for_group" -> {
-                constraintService.saveNewForbiddenPeriodForGroup(constraintRequest.getDay(), constraintRequest.getGroup(), constraintRequest.getPeriod());
-                return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
-            }
-            case "forbidden_day_for_teacher" -> {
-                constraintService.saveNewForbiddenDayForTeachers(constraintRequest.getDay(), constraintRequest.getTeacher());
-                return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
-            }
-            case "forbidden_day_for_group" -> {
-                constraintService.saveNewForbiddenDayForGroups(constraintRequest.getDay(), constraintRequest.getGroup());
-                return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
-            }
-            case "teachers_overlapping" -> {
-                constraintService.saveNewTeachersOverlapping(constraintRequest.getTeacher1(), constraintRequest.getTeacher2());
-                return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
-            }
-            case "groups_overlapping" -> {
-                constraintService.saveNewGroupsOverlapping(constraintRequest.getGroup1(), constraintRequest.getGroup2());
-                return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
-            }
-        }
+        constraintService.saveNewUniversalConstraint(constraintNameRu, constraintNameEng, constraintRequest.getGroup(), constraintRequest.getGroup1(),
+                constraintRequest.getGroup2(), constraintRequest.getTeacher(), constraintRequest.getTeacher1(),
+                constraintRequest.getTeacher2(), constraintRequest.getDay(), constraintRequest.getPeriod(),
+                constraintRequest.getNumber());
+        return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
+    }
 
-        return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такого ограничения не существует " +
-                "или оно еще не поддерживается."));
+    @DeleteMapping("/delete_constraint//{id}")
+    @Transactional
+    public ResponseEntity<?> deleteConstraint(@PathVariable @Valid @NotBlank Long id) {
+        constraintService.deleteUniversalConstraint(id);
+        return ResponseEntity.ok(new MessageResponse("Ограничение успешно удалено"));
     }
 }

@@ -10,13 +10,7 @@ import ru.nsu.server.model.Room;
 import ru.nsu.server.model.config.ConfigModel;
 import ru.nsu.server.model.config.ConstraintModel;
 import ru.nsu.server.model.config.PlanItem;
-import ru.nsu.server.model.constraints.ForbiddenDayForGroup;
-import ru.nsu.server.model.constraints.ForbiddenDayForTeacher;
-import ru.nsu.server.model.constraints.ForbiddenPeriodForGroup;
-import ru.nsu.server.model.constraints.ForbiddenPeriodForTeacher;
-import ru.nsu.server.model.constraints.GroupsOverlapping;
-import ru.nsu.server.model.constraints.NumberOfTeachingDays;
-import ru.nsu.server.model.constraints.TeachersOverlapping;
+import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.current.WeekTimetable;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
 import ru.nsu.server.repository.GroupRepository;
@@ -26,13 +20,7 @@ import ru.nsu.server.repository.RoomRepository;
 import ru.nsu.server.repository.SubjectRepository;
 import ru.nsu.server.repository.UserRepository;
 import ru.nsu.server.repository.WeekTimeTableRepository;
-import ru.nsu.server.repository.constraints.ForbiddenDayForGroupRepository;
-import ru.nsu.server.repository.constraints.ForbiddenDayForTeacherRepository;
-import ru.nsu.server.repository.constraints.ForbiddenPeriodForGroupRepository;
-import ru.nsu.server.repository.constraints.ForbiddenPeriodForTeacherRepository;
-import ru.nsu.server.repository.constraints.GroupsOverlappingRepository;
-import ru.nsu.server.repository.constraints.NumberOfTeachingDaysRepository;
-import ru.nsu.server.repository.constraints.TeachersOverlappingRepository;
+import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,20 +34,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class TimetableService {
-
-    private final ForbiddenDayForGroupRepository forbiddenDayForGroupRepository;
-
-    private final ForbiddenDayForTeacherRepository forbiddenDayForTeacherRepository;
-
-    private final ForbiddenPeriodForGroupRepository forbiddenPeriodForGroupRepository;
-
-    private final ForbiddenPeriodForTeacherRepository forbiddenPeriodForTeacherRepository;
-
-    private final GroupsOverlappingRepository groupsOverlappingRepository;
-
-    private final NumberOfTeachingDaysRepository numberOfTeachingDaysRepository;
-
-    private final TeachersOverlappingRepository teachersOverlappingRepository;
 
     private final WeekTimeTableRepository weekTimeTableRepository;
 
@@ -75,20 +49,13 @@ public class TimetableService {
 
     private final GroupRepository groupRepository;
 
+    private final UniversalConstraintRepository universalConstraintRepository;
+
     @Autowired
     public TimetableService(WeekTimeTableRepository weekTimeTableRepository, PotentialWeekTimeTableRepository potentialWeekTimeTableRepository,
                             UserRepository userRepository, RoomRepository roomRepository, SubjectRepository subjectRepository, PlanRepository planRepository,
-                            GroupRepository groupRepository, ForbiddenDayForTeacherRepository forbiddenDayForTeacherRepository, ForbiddenDayForGroupRepository forbiddenDayForGroupRepository,
-                            ForbiddenPeriodForTeacherRepository forbiddenPeriodForTeacherRepository, ForbiddenPeriodForGroupRepository forbiddenPeriodForGroupRepository,
-                            GroupsOverlappingRepository groupsOverlappingRepository, NumberOfTeachingDaysRepository numberOfTeachingDaysRepository,
-                            TeachersOverlappingRepository teachersOverlappingRepository) {
-        this.forbiddenDayForGroupRepository = forbiddenDayForGroupRepository;
-        this.forbiddenDayForTeacherRepository = forbiddenDayForTeacherRepository;
-        this.forbiddenPeriodForGroupRepository = forbiddenPeriodForGroupRepository;
-        this.forbiddenPeriodForTeacherRepository = forbiddenPeriodForTeacherRepository;
-        this.groupsOverlappingRepository = groupsOverlappingRepository;
-        this.numberOfTeachingDaysRepository = numberOfTeachingDaysRepository;
-        this.teachersOverlappingRepository = teachersOverlappingRepository;
+                            GroupRepository groupRepository, UniversalConstraintRepository universalConstraintRepository) {
+        this.universalConstraintRepository = universalConstraintRepository;
         this.weekTimeTableRepository = weekTimeTableRepository;
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
@@ -98,7 +65,7 @@ public class TimetableService {
         this.potentialWeekTimeTableRepository = potentialWeekTimeTableRepository;
     }
 
-    public ConfigModel fillConfigFile() {
+    public ConfigModel fillConfigFileUniversal() {
         ConfigModel configModel = new ConfigModel();
         List<Room> rooms = roomRepository.getAll();
         List<Group> groups = groupRepository.getAll();
@@ -112,92 +79,21 @@ public class TimetableService {
         configModel.setRooms(roomsMap);
         configModel.setPlan(planItems);
 
+        List<UniversalConstraint> universalConstraints = universalConstraintRepository.findAll();
         List<ConstraintModel> constraintModelList = new ArrayList<>();
-        List<ForbiddenDayForGroup> forbiddenDaysForGroups = forbiddenDayForGroupRepository.findAll();
-        if (!forbiddenDaysForGroups.isEmpty()) {
-            for (var currentConstraint : forbiddenDaysForGroups) {
-                ConstraintModel constraint = new ConstraintModel();
-                constraint.setName("forbidden_day_for_group");
-                constraint.setArgs(Map.of(
-                        "day", currentConstraint.getDay(),
-                        "group", currentConstraint.getGroup()
-                ));
-                constraintModelList.add(constraint);
-            }
-        }
-        List<ForbiddenDayForTeacher> forbiddenDayForTeachers = forbiddenDayForTeacherRepository.findAll();
-        if (!forbiddenDayForTeachers.isEmpty()) {
-            for (var currentConstraint : forbiddenDayForTeachers) {
-                ConstraintModel constraint = new ConstraintModel();
-                constraint.setName("forbidden_day_for_teacher");
-                constraint.setArgs(Map.of(
-                        "day", currentConstraint.getDay(),
-                        "teacher", currentConstraint.getTeacher()
-                ));
-                constraintModelList.add(constraint);
-            }
-        }
 
-        List<ForbiddenPeriodForGroup> forbiddenPeriodForGroups = forbiddenPeriodForGroupRepository.findAll();
-        if (!forbiddenPeriodForGroups.isEmpty()) {
-            for (var currentConstraint : forbiddenPeriodForGroups) {
+        if (!universalConstraints.isEmpty()) {
+            for (var currentConstraint : universalConstraints) {
                 ConstraintModel constraint = new ConstraintModel();
-                constraint.setName("forbidden_period_for_group");
+                constraint.setName(currentConstraint.getConstraintName());
                 constraint.setArgs(Map.of(
                         "day", currentConstraint.getDay(),
-                        "period", currentConstraint.getPeriod(),
-                        "group", currentConstraint.getGroup()
-                ));
-                constraintModelList.add(constraint);
-            }
-        }
-
-        List<ForbiddenPeriodForTeacher> forbiddenPeriodForTeachers = forbiddenPeriodForTeacherRepository.findAll();
-        if (!forbiddenPeriodForTeachers.isEmpty()) {
-            for (var currentConstraint : forbiddenPeriodForTeachers) {
-                ConstraintModel constraint = new ConstraintModel();
-                constraint.setName("forbidden_period_for_teacher");
-                constraint.setArgs(Map.of(
-                        "day", currentConstraint.getDay(),
-                        "period", currentConstraint.getPeriod(),
-                        "teacher", currentConstraint.getTeacher()
-                ));
-                constraintModelList.add(constraint);
-            }
-        }
-
-        List<GroupsOverlapping> groupsOverlapping = groupsOverlappingRepository.findAll();
-        if (!groupsOverlapping.isEmpty()) {
-            for (var currentConstraint : groupsOverlapping) {
-                ConstraintModel constraint = new ConstraintModel();
-                constraint.setName("groups_overlapping");
-                constraint.setArgs(Map.of(
+                        "group", currentConstraint.getGroup(),
                         "group_1", currentConstraint.getGroup1(),
-                        "group_2", currentConstraint.getGroup2()
-                ));
-                constraintModelList.add(constraint);
-            }
-        }
-
-        List<NumberOfTeachingDays> numberOfTeachingDays = numberOfTeachingDaysRepository.findAll();
-        if (!numberOfTeachingDays.isEmpty()) {
-            for (var currentConstraint : numberOfTeachingDays) {
-                ConstraintModel constraint = new ConstraintModel();
-                constraint.setName("number_of_teaching_days");
-                constraint.setArgs(Map.of(
+                        "group_2", currentConstraint.getGroup2(),
+                        "number", currentConstraint.getNumber(),
                         "teacher", currentConstraint.getTeacher(),
-                        "number", currentConstraint.getNumber()
-                ));
-                constraintModelList.add(constraint);
-            }
-        }
-
-        List<TeachersOverlapping> teachersOverlapping = teachersOverlappingRepository.findAll();
-        if (!teachersOverlapping.isEmpty()) {
-            for (var currentConstraint : teachersOverlapping) {
-                ConstraintModel constraint = new ConstraintModel();
-                constraint.setName("teachers_overlapping");
-                constraint.setArgs(Map.of(
+                        "period", currentConstraint.getPeriod(),
                         "teacher_1", currentConstraint.getTeacher1(),
                         "teacher_2", currentConstraint.getTeacher2()
                 ));
@@ -222,7 +118,7 @@ public class TimetableService {
 
     public void saveConfigToFile() {
         try {
-            ConfigModel configModel = fillConfigFile();
+            ConfigModel configModel = fillConfigFileUniversal();
             toJson(configModel);
         } catch (IOException e) {
             // Обработка ошибок ввода-вывода
@@ -232,7 +128,6 @@ public class TimetableService {
 
     public Map<String, List<Integer>> convertRoomsToMap(List<Room> rooms) {
         Map<String, List<Integer>> roomsMap = new HashMap<>();
-
         for (Room room : rooms) {
             String type = room.getType();
 

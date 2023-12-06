@@ -55,7 +55,7 @@ public class PotentialTimetableController {
     @Transactional
     public ResponseEntity<?> createTimeTable() {
         try {
-            String output = executeScript();
+            String output = executeScriptKolya();
 
             List<String> list = List.of(output.split("\n"));
             timetableService.saveNewPotentialTimeTable(list);
@@ -65,7 +65,7 @@ public class PotentialTimetableController {
         }
     }
 
-    @PostMapping("/activete")
+    @PostMapping("/activate")
     @Transactional
     public ResponseEntity<?> makePotentialActual() {
         timetableService.convertOptionalTimeTableToActual();
@@ -110,6 +110,32 @@ public class PotentialTimetableController {
         String pythonScriptPath = baseDir + "/Algo/algo.py";
 
         String jsonFilePath = baseDir + "/Algo/my_config_example.json";
+        ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
+
+        processBuilder.redirectErrorStream(true);
+
+        Process process = processBuilder.start();
+        String output = new BufferedReader(new InputStreamReader(process.getInputStream()))
+                .lines().collect(Collectors.joining("\n"));
+
+        log.info(output);
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new IOException("Script exited with error code: " + exitCode + " Output: " + output);
+        }
+
+        return output;
+    }
+
+    public String executeScriptKolya() throws IOException, InterruptedException {
+
+        String baseDir = System.getProperty("user.dir");
+
+        String pythonExecutablePath = baseDir + "/Algo/venv/Scripts/python.exe";
+        String pythonScriptPath = baseDir + "/Algo/algo.py";
+
+        String jsonFilePath = baseDir + "/Algo/config_example.json";
+
         ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
 
         processBuilder.redirectErrorStream(true);

@@ -15,8 +15,12 @@ public class ConstraintResponse {
 
     private String constraintNameRu;
 
+    private String constraintNameEng;
+
     @JsonFormat(timezone = "Asia/Novosibirsk")
     private Date dateOfCreation;
+
+    private Long id;
 
     private Integer group;
 
