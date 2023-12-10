@@ -29,7 +29,14 @@ public class ConstraintService {
 
     @Transactional
     public void deleteUniversalConstraint(Long id) {
+        if (!universalConstraintRepository.existsById(id)) {
+            return;
+        }
         universalConstraintRepository.deleteById(id);
+    }
+
+    public boolean existById(Long id) {
+        return universalConstraintRepository.existsById(id);
     }
 
     @Transactional
@@ -70,7 +77,7 @@ public class ConstraintService {
                 constraintResponse.setNumber(currentConstraint.getNumber());
                 constraintResponse.setTeacher1(currentConstraint.getTeacher1());
                 constraintResponse.setTeacher2(currentConstraint.getTeacher2());
-                constraintResponse.setId(constraintResponse.getId());
+                constraintResponse.setId(currentConstraint.getId());
 
                 constraintResponses.add(constraintResponse);
             }

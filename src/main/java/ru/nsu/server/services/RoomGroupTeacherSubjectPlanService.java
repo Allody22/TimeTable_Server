@@ -91,6 +91,15 @@ public class RoomGroupTeacherSubjectPlanService {
         planRepository.save(plan);
     }
 
+    @Transactional
+    public void deletePlanById(Long id) {
+        planRepository.deleteById(id);
+    }
+
+    public boolean ifExistPlanById(Long id) {
+        return planRepository.existsById(id);
+    }
+
     public List<Plan> getAllPlan() {
         return planRepository.findAll();
     }

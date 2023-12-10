@@ -15,21 +15,21 @@ public class ConstraintRequest {
     @NotBlank
     private String constraintNameRu;
 
-    private Integer group;
+    private Integer group = 0; // значение по умолчанию
 
-    private Integer group1;
+    private Integer group1 = 0; // значение по умолчанию
 
-    private Integer group2;
+    private Integer group2 = 0; // значение по умолчанию
 
-    private Integer number;
+    private Integer number = 1; // значение по умолчанию
 
-    private Integer day;
+    private Integer day = 0; // значение по умолчанию
 
-    private String teacher;
+    private String teacher = "Не указан"; // значение по умолчанию
 
-    private String teacher1;
+    private String teacher1 = "Не указан"; // значение по умолчанию
 
-    private String teacher2;
+    private String teacher2 = "Не указан"; // значение по умолчанию
 
-    private Integer period;
+    private Integer period = 0; // значение по умолчанию
 }

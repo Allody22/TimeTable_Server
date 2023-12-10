@@ -42,7 +42,7 @@ public class ConstraintController {
     }
 
 
-    @PostMapping("/create_constraint")
+    @PostMapping("/create")
     @Transactional
     public ResponseEntity<?> createConstraint(@Valid @RequestBody ConstraintRequest constraintRequest) {
         String constraintNameRu = constraintRequest.getConstraintNameRu();
@@ -55,9 +55,12 @@ public class ConstraintController {
         return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
     }
 
-    @DeleteMapping("/delete_constraint//{id}")
+    @DeleteMapping("/delete/{id}")
     @Transactional
     public ResponseEntity<?> deleteConstraint(@PathVariable @Valid @NotBlank Long id) {
+        if (!constraintService.existById(id)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Ограничения с айди " + id.toString() + " не существует."));
+        }
         constraintService.deleteUniversalConstraint(id);
         return ResponseEntity.ok(new MessageResponse("Ограничение успешно удалено"));
     }

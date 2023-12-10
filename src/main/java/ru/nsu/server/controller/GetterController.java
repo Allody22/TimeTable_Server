@@ -23,18 +23,15 @@ import javax.validation.constraints.NotBlank;
 @RequestMapping("/get")
 public class GetterController {
 
-    private final TimetableService timetableService;
-
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
     private final ConstraintService constraintService;
 
     @Autowired
     public GetterController(
-            TimetableService timetableService, RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService, ConstraintService constraintService) {
+            RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService, ConstraintService constraintService) {
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.constraintService = constraintService;
-        this.timetableService = timetableService;
     }
 
     @GetMapping("/all_groups")
@@ -65,6 +62,12 @@ public class GetterController {
     @Transactional
     public ResponseEntity<?> getAllSubjects() {
         return ResponseEntity.ok(roomGroupTeacherSubjectPlanService.getAllSubjects());
+    }
+
+    @GetMapping("/all_plan")
+    @Transactional
+    public ResponseEntity<?> getAllPlan() {
+        return ResponseEntity.ok(roomGroupTeacherSubjectPlanService.getAllPlan());
     }
 
     @GetMapping("/all_teachers")

@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,7 @@ import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
 import ru.nsu.server.services.UserService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -83,6 +86,17 @@ public class AdminController {
     public ResponseEntity<?> createPlan(@Valid @RequestBody PlanRequest planRequest) {
         roomGroupTeacherSubjectPlanService.saveNewPlan(planRequest.getTeacher(), planRequest.getSubject(), planRequest.getSubjectType(),
                 planRequest.getGroups(), planRequest.getTimesInAWeek());
+        return ResponseEntity.ok(new MessageResponse("План успешно сохранен"));
+    }
+
+    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @DeleteMapping("/delete_plan/{id}")
+    @Transactional
+    public ResponseEntity<?> deletePlan(@PathVariable @Valid @NotBlank Long id) {
+        if (!roomGroupTeacherSubjectPlanService.ifExistPlanById(id)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Плана с айди " + id + " не существует."));
+        }
+        roomGroupTeacherSubjectPlanService.deletePlanById(id);
         return ResponseEntity.ok(new MessageResponse("План успешно сохранен"));
     }
 
