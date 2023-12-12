@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.nsu.server.services.ConstraintService;
 import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
-import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;

@@ -9,7 +9,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +26,8 @@ import ru.nsu.server.services.UserService;
 
 import javax.validation.Valid;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -36,7 +37,6 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
 
-    private final PasswordEncoder encoder;
 
     private final JwtUtils jwtUtils;
 
@@ -47,12 +47,10 @@ public class AuthController {
     @Autowired
     public AuthController(
             AuthenticationManager authenticationManager,
-            PasswordEncoder encoder,
             UserService userService,
             JwtUtils jwtUtils,
             RefreshTokenService refreshTokenService) {
         this.authenticationManager = authenticationManager;
-        this.encoder = encoder;
         this.userService = userService;
         this.jwtUtils = jwtUtils;
         this.refreshTokenService = refreshTokenService;
@@ -78,7 +76,14 @@ public class AuthController {
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
             long expires_in = refreshToken.getExpiryDate().getEpochSecond() - Instant.now().getEpochSecond();
 
-            JwtAuthResponse jwtAuthResponse = new JwtAuthResponse(access_token, refreshToken.getToken(), "Bearer", expires_in);
+            var user = userService.findById(userDetails.getId());
+
+            List<String> userStringRoles = new ArrayList<>();
+            for (var role : user.getRoles()) {
+                userStringRoles.add(role.toString());
+            }
+            JwtAuthResponse jwtAuthResponse = new JwtAuthResponse(access_token, refreshToken.getToken(),
+                    "Bearer", expires_in, userStringRoles);
 
             return ResponseEntity.ok(jwtAuthResponse);
         } catch (AuthenticationException e) {
