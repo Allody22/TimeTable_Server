@@ -42,7 +42,6 @@ public class AdminController {
         this.userService = userService;
     }
 
-
     //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_group")
     @Transactional
@@ -54,6 +53,17 @@ public class AdminController {
         }
         roomGroupTeacherSubjectPlanService.saveNewGroup(groupNumber, groupRequest.getFaculty(), groupRequest.getCourse(), groupRequest.getStudentsNumber());
         return ResponseEntity.ok(new MessageResponse("Группа " + groupNumber + " успешно сохранена"));
+    }
+
+    @PostMapping("/delete_group/{group}")
+    @Transactional
+    public ResponseEntity<?> deleteGroup(@PathVariable @Valid @NotBlank String group) {
+
+        if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой группа не существует."));
+        }
+        roomGroupTeacherSubjectPlanService.deleteGroupByNumber(group);
+        return ResponseEntity.ok(new MessageResponse("Группа " + group + " успешно удалена"));
     }
 
     //    @PreAuthorize("hasRole('ADMINISTRATOR')")
@@ -68,6 +78,16 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно сохранен"));
     }
 
+    @PostMapping("/delete_subject/{subjectName}")
+    @Transactional
+    public ResponseEntity<?> deleteSubject(@PathVariable @Valid @NotBlank String subjectName) {
+        if (!roomGroupTeacherSubjectPlanService.ifExistBySubjectName(subjectName)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такого предмет не существует."));
+        }
+        roomGroupTeacherSubjectPlanService.deleteSubject(subjectName);
+        return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно удален"));
+    }
+
     //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_room")
     @Transactional
@@ -78,6 +98,17 @@ public class AdminController {
         }
         roomGroupTeacherSubjectPlanService.saveNewRoom(roomName, roomRequest.getType(), roomRequest.getCapacity());
         return ResponseEntity.ok(new MessageResponse("Комната " + roomName + " успешно сохранен"));
+    }
+
+
+    @PostMapping("/delete_room/{room}")
+    @Transactional
+    public ResponseEntity<?> deleteRoom(@PathVariable @Valid @NotBlank String room) {
+        if (!roomGroupTeacherSubjectPlanService.ifExistByRoomName(room)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой комнаты не существует."));
+        }
+        roomGroupTeacherSubjectPlanService.deleteRoom(room);
+        return ResponseEntity.ok(new MessageResponse("Комната " + room + " успешно удалена"));
     }
 
     //    @PreAuthorize("hasRole('ADMINISTRATOR')")

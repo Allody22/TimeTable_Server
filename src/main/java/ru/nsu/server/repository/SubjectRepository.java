@@ -13,5 +13,7 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
     @Query(value = "SELECT name FROM subjects", nativeQuery = true)
     List<String> getAll();
 
+    void deleteSubjectByName(String name);
+
     boolean existsByName(String name);
 }

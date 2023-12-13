@@ -15,5 +15,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 
     List<Group> getAllByFacultyContaining(String faculty);
 
+    void deleteGroupByGroupNumber(String groupNumber);
+
     boolean existsByGroupNumber(String groupNumber);
 }

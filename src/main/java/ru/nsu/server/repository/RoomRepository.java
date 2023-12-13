@@ -14,4 +14,6 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     List<Room> getAll();
 
     boolean existsByName(String name);
+
+    void deleteRoomByName(String name);
 }

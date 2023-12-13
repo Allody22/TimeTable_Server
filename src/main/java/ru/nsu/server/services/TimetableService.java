@@ -17,8 +17,6 @@ import ru.nsu.server.repository.GroupRepository;
 import ru.nsu.server.repository.PlanRepository;
 import ru.nsu.server.repository.PotentialWeekTimeTableRepository;
 import ru.nsu.server.repository.RoomRepository;
-import ru.nsu.server.repository.SubjectRepository;
-import ru.nsu.server.repository.UserRepository;
 import ru.nsu.server.repository.WeekTimeTableRepository;
 import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
 
@@ -39,11 +37,7 @@ public class TimetableService {
 
     private final PotentialWeekTimeTableRepository potentialWeekTimeTableRepository;
 
-    private final UserRepository userRepository;
-
     private final RoomRepository roomRepository;
-
-    private final SubjectRepository subjectRepository;
 
     private final PlanRepository planRepository;
 
@@ -53,13 +47,11 @@ public class TimetableService {
 
     @Autowired
     public TimetableService(WeekTimeTableRepository weekTimeTableRepository, PotentialWeekTimeTableRepository potentialWeekTimeTableRepository,
-                            UserRepository userRepository, RoomRepository roomRepository, SubjectRepository subjectRepository, PlanRepository planRepository,
+                            RoomRepository roomRepository, PlanRepository planRepository,
                             GroupRepository groupRepository, UniversalConstraintRepository universalConstraintRepository) {
         this.universalConstraintRepository = universalConstraintRepository;
         this.weekTimeTableRepository = weekTimeTableRepository;
-        this.userRepository = userRepository;
         this.roomRepository = roomRepository;
-        this.subjectRepository = subjectRepository;
         this.planRepository = planRepository;
         this.groupRepository = groupRepository;
         this.potentialWeekTimeTableRepository = potentialWeekTimeTableRepository;

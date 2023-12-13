@@ -50,6 +50,11 @@ public class RoomGroupTeacherSubjectPlanService {
         groupRepository.save(group);
     }
 
+    @Transactional
+    public void deleteGroupByNumber(String groupNumber) {
+        groupRepository.deleteGroupByGroupNumber(groupNumber);
+    }
+
     public List<Group> getAllGroups() {
         return groupRepository.getAll();
     }
@@ -77,6 +82,11 @@ public class RoomGroupTeacherSubjectPlanService {
         room.setCapacity(capacity);
         room.setType(type);
         roomRepository.save(room);
+    }
+
+    @Transactional
+    public void deleteRoom(String name) {
+        roomRepository.deleteRoomByName(name);
     }
 
     @Transactional
@@ -111,6 +121,11 @@ public class RoomGroupTeacherSubjectPlanService {
         subject.setName(name);
         subject.setTimesInAWeek(timesInAWeek);
         subjectRepository.save(subject);
+    }
+
+    @Transactional
+    public void deleteSubject(String name) {
+        subjectRepository.deleteSubjectByName(name);
     }
 
     public List<String> getAllSubjects() {
