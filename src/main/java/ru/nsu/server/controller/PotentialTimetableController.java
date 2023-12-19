@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.nsu.server.model.Operations;
 import ru.nsu.server.payload.response.FailureResponse;
 import ru.nsu.server.payload.response.MessageResponse;
+import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
@@ -22,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,10 +36,14 @@ public class PotentialTimetableController {
 
     private final TimetableService timetableService;
 
+    private final OperationsRepository operationsRepository;
+
     @Autowired
     public PotentialTimetableController(
-            TimetableService timetableService) {
+            TimetableService timetableService,
+            OperationsRepository operationsRepository) {
         this.timetableService = timetableService;
+        this.operationsRepository = operationsRepository;
     }
 
     @Transactional
@@ -47,6 +54,11 @@ public class PotentialTimetableController {
             var output = executeScript();
             if (!output.getRight()) {
                 var failureResponse = parseFailure(output.getLeft());
+                Operations operations = new Operations();
+                operations.setDateOfCreation(new Date());
+                operations.setUserAccount("Админ");
+                operations.setDescription("Неудачная попытка создать расписание");
+                operationsRepository.save(operations);
                 return ResponseEntity.badRequest().body((failureResponse));
             }
 
@@ -65,6 +77,12 @@ public class PotentialTimetableController {
             var output = executeScriptKolya();
             if (!output.getRight()) {
                 var failureResponse = parseFailure(output.getLeft());
+
+                Operations operations = new Operations();
+                operations.setDateOfCreation(new Date());
+                operations.setUserAccount("Админ");
+                operations.setDescription("Неудачная попытка создать расписание из заранее заготовленного конфига");
+                operationsRepository.save(operations);
                 return ResponseEntity.badRequest().body((failureResponse));
             }
             List<String> list = List.of(output.getLeft().split("\n"));
@@ -234,7 +252,7 @@ public class PotentialTimetableController {
                 response.setSubjectType(subjectType);
                 break;
             case "Group":
-                response.setInteger(Integer.parseInt(value));
+                response.setGroup(Integer.parseInt(value));
                 break;
             case "Times in a week":
                 response.setTimesInAWeek(Integer.parseInt(value));

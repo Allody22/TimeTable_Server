@@ -3,9 +3,11 @@ package ru.nsu.server.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.nsu.server.model.ConstraintsNames;
+import ru.nsu.server.model.Operations;
 import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.payload.response.ConstraintResponse;
 import ru.nsu.server.repository.ConstraintNamesRepository;
+import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
 
 import java.util.ArrayList;
@@ -21,10 +23,13 @@ public class ConstraintService {
 
     private final ConstraintNamesRepository constraintNamesRepository;
 
-    public ConstraintService(ConstraintNamesRepository constraintNamesRepository,
+    private final OperationsRepository operationsRepository;
+
+    public ConstraintService(ConstraintNamesRepository constraintNamesRepository, OperationsRepository operationsRepository,
                              UniversalConstraintRepository universalConstraintRepository) {
         this.universalConstraintRepository = universalConstraintRepository;
         this.constraintNamesRepository = constraintNamesRepository;
+        this.operationsRepository = operationsRepository;
     }
 
     @Transactional
@@ -57,6 +62,50 @@ public class ConstraintService {
         universalConstraint.setPeriod(period);
         universalConstraint.setNumber(number);
         universalConstraintRepository.save(universalConstraint);
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Создано новое ограничение").append(" '").append(constraintNameRu).append("', с условием");
+
+        int initialLength = sb.length();
+
+        if (group1 != null && group1 != -1) {
+            sb.append(" первая группа: '").append(group1).append("',");
+        }
+            if (group2 != null && group2 != -1) {
+            sb.append(" вторая группа: '").append(group2).append("',");
+        }
+        if (number != null && number != -1) {
+            sb.append(" кол-во: '").append(number).append("',");
+        }
+        if (day != null && day != -1) {
+            sb.append(" номером дня недели: '").append(day).append("',");
+        }
+        if (teacher != null && teacher.isBlank() && teacher.equals("Не указан")) {
+            sb.append(" преподавателем: '").append(teacher).append("',");
+        }
+        if (teacher1 != null && teacher1.isBlank() && teacher1.equals("Не указан")) {
+            sb.append(" первым преподавателем: '").append(teacher1).append("',");
+        }
+
+        if (teacher2 != null && teacher2.isBlank() && teacher2.equals("Не указан")) {
+            sb.append(" вторым преподавателем: '").append(teacher2).append("',");
+        }
+
+        if (period != null && period!= -1) {
+            sb.append(" номером пары: '").append(teacher1).append("',");
+        }
+        if (sb.length() > initialLength) {
+            if (sb.charAt(sb.length() - 1) == ',') {
+                sb.setLength(sb.length() - 1);
+            }
+        }
+
+        Operations operations = new Operations();
+        operations.setDateOfCreation(new Date());
+        operations.setDescription(sb.toString());
+        operations.setUserAccount("Администратор");
+        operationsRepository.save(operations);
     }
 
     public List<ConstraintResponse> getAllConstraints() {

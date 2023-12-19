@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.services.ConstraintService;
 import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
 
@@ -26,11 +27,21 @@ public class GetterController {
 
     private final ConstraintService constraintService;
 
+    private final OperationsRepository operationsRepository;
+
     @Autowired
     public GetterController(
-            RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService, ConstraintService constraintService) {
+            RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService, ConstraintService constraintService,
+            OperationsRepository operationsRepository) {
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.constraintService = constraintService;
+        this.operationsRepository =operationsRepository;
+    }
+
+    @GetMapping("/all_operations")
+    @Transactional
+    public ResponseEntity<?> getAllOperations() {
+        return ResponseEntity.ok(operationsRepository.findAll());
     }
 
     @GetMapping("/all_groups")

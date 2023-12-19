@@ -11,7 +11,7 @@ public class FailureResponse {
 
     private String subjectType;
 
-    private Integer integer;
+    private Integer group;
 
     private Integer timesInAWeek;
 

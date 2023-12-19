@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.nsu.server.model.Group;
+import ru.nsu.server.model.Operations;
 import ru.nsu.server.model.Plan;
 import ru.nsu.server.model.Room;
 import ru.nsu.server.model.config.ConfigModel;
@@ -14,6 +15,7 @@ import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.current.WeekTimetable;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
 import ru.nsu.server.repository.GroupRepository;
+import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.repository.PlanRepository;
 import ru.nsu.server.repository.PotentialWeekTimeTableRepository;
 import ru.nsu.server.repository.RoomRepository;
@@ -25,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,12 +48,15 @@ public class TimetableService {
 
     private final UniversalConstraintRepository universalConstraintRepository;
 
+    private final OperationsRepository operationsRepository;
+
     @Autowired
     public TimetableService(WeekTimeTableRepository weekTimeTableRepository, PotentialWeekTimeTableRepository potentialWeekTimeTableRepository,
-                            RoomRepository roomRepository, PlanRepository planRepository,
+                            RoomRepository roomRepository, PlanRepository planRepository, OperationsRepository operationsRepository,
                             GroupRepository groupRepository, UniversalConstraintRepository universalConstraintRepository) {
         this.universalConstraintRepository = universalConstraintRepository;
         this.weekTimeTableRepository = weekTimeTableRepository;
+        this.operationsRepository = operationsRepository;
         this.roomRepository = roomRepository;
         this.planRepository = planRepository;
         this.groupRepository = groupRepository;
@@ -190,6 +196,11 @@ public class TimetableService {
             weekTimeTableRepository.save(weekTimetable);
         }
         potentialWeekTimeTableRepository.deleteAll();
+        Operations operations = new Operations();
+        operations.setDateOfCreation(new Date());
+        operations.setUserAccount("Админ");
+        operations.setDescription("Потенциальное расписание превратилось в актуальное");
+        operationsRepository.save(operations);
     }
 
     @Transactional
@@ -233,6 +244,11 @@ public class TimetableService {
 
             potentialWeekTimeTableRepository.save(potentialWeekTimetable);
         }
+        Operations operations = new Operations();
+        operations.setDateOfCreation(new Date());
+        operations.setUserAccount("Админ");
+        operations.setDescription("Сохранено новое потенциальное расписание");
+        operationsRepository.save(operations);
     }
 
     @Transactional

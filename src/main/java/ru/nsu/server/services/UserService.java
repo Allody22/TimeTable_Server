@@ -3,9 +3,11 @@ package ru.nsu.server.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.nsu.server.model.Operations;
 import ru.nsu.server.model.Role;
 import ru.nsu.server.model.User;
 import ru.nsu.server.model.constants.ERole;
+import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.repository.RoleRepository;
 import ru.nsu.server.repository.UserRepository;
 
@@ -23,10 +25,12 @@ public class UserService {
 
     private final PasswordEncoder encoder;
 
+    private final OperationsRepository operationsRepository;
     @Autowired
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
-                       PasswordEncoder encoder) {
+                       PasswordEncoder encoder, OperationsRepository operationsRepository) {
         this.roleRepository = roleRepository;
+        this.operationsRepository = operationsRepository;
         this.userRepository = userRepository;
         this.encoder = encoder;
     }
@@ -66,6 +70,12 @@ public class UserService {
         newUser.setPassword(encoder.encode(userPassword));
 
         userRepository.save(newUser);
+
+        Operations operations = new Operations();
+        operations.setDateOfCreation(new Date());
+        operations.setUserAccount("Админ");
+        operations.setDescription("Зарегистрирован администратор с именем " + fullName + " и почтой " + email);
+        operationsRepository.save(operations);
         return userPassword;
     }
 
@@ -89,6 +99,14 @@ public class UserService {
         newUser.setPassword(encoder.encode(userPassword));
 
         userRepository.save(newUser);
+
+
+        Operations operations = new Operations();
+        operations.setDateOfCreation(new Date());
+        operations.setUserAccount("Админ");
+        operations.setDescription("Зарегистрирован учитель с именем " + fullName + " и почтой " + email);
+        operationsRepository.save(operations);
+
         return userPassword;
     }
 
@@ -109,6 +127,12 @@ public class UserService {
         newUser.setPassword(encoder.encode(userPassword));
 
         userRepository.save(newUser);
+
+        Operations operations = new Operations();
+        operations.setDateOfCreation(new Date());
+        operations.setUserAccount("Админ");
+        operations.setDescription("Зарегистрирован новый пользователь с именем " + fullName + " и почтой" + email);
+        operationsRepository.save(operations);
         return userPassword;
     }
 }
