@@ -4,7 +4,9 @@ package ru.nsu.server.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,11 +23,19 @@ import ru.nsu.server.services.TimetableService;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -44,53 +54,6 @@ public class PotentialTimetableController {
             OperationsRepository operationsRepository) {
         this.timetableService = timetableService;
         this.operationsRepository = operationsRepository;
-    }
-
-    @Transactional
-    @PostMapping("/create_timetable_db")
-    public ResponseEntity<?> fillFile() {
-        try {
-            timetableService.saveConfigToFile();
-            var output = executeScript();
-            if (!output.getRight()) {
-                var failureResponse = parseFailure(output.getLeft());
-                Operations operations = new Operations();
-                operations.setDateOfCreation(new Date());
-                operations.setUserAccount("Админ");
-                operations.setDescription("Неудачная попытка создать расписание");
-                operationsRepository.save(operations);
-                return ResponseEntity.badRequest().body((failureResponse));
-            }
-
-            List<String> list = List.of(output.getLeft().split("\n"));
-            timetableService.saveNewPotentialTimeTable(list);
-            return ResponseEntity.ok(new MessageResponse("Новое потенциальное расписание сделано"));
-        } catch (IOException | InterruptedException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Произошла ошибка: " + e.getMessage()));
-        }
-    }
-
-    @PostMapping("/create_timetable_kolya")
-    @Transactional
-    public ResponseEntity<?> createTimeTable() {
-        try {
-            var output = executeScriptKolya();
-            if (!output.getRight()) {
-                var failureResponse = parseFailure(output.getLeft());
-
-                Operations operations = new Operations();
-                operations.setDateOfCreation(new Date());
-                operations.setUserAccount("Админ");
-                operations.setDescription("Неудачная попытка создать расписание из заранее заготовленного конфига");
-                operationsRepository.save(operations);
-                return ResponseEntity.badRequest().body((failureResponse));
-            }
-            List<String> list = List.of(output.getLeft().split("\n"));
-            timetableService.saveNewPotentialTimeTable(list);
-            return ResponseEntity.ok(new MessageResponse("Новое потенциальное расписание сделано"));
-        } catch (IOException | InterruptedException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Произошла ошибка: " + e.getMessage()));
-        }
     }
 
     @PostMapping("/activate")
@@ -130,24 +93,135 @@ public class PotentialTimetableController {
         return ResponseEntity.ok(timetableService.getPotentialFacultyTimetable(faculty));
     }
 
-    public Pair<String, Boolean> executeScript() throws IOException, InterruptedException {
+    @Transactional
+    @PostMapping("/create_timetable_db")
+    public ResponseEntity<?> createTimeTableFromDB() {
+        try {
+            timetableService.saveConfigToFile();
+            var output = executeScript();
+            if (!output.getRight()) {
+                var failureResponse = parseFailure(output.getLeft());
+                return ResponseEntity.badRequest().body((failureResponse));
+            }
+            return ResponseEntity.ok(new MessageResponse("Новое потенциальное расписание сделано"));
+        } catch (IOException | InterruptedException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Произошла ошибка: " + e.getMessage()));
+        }
+    }
 
+    @PostMapping("/create_timetable_kolya")
+    @Transactional
+    public ResponseEntity<?> createTimeTableKolya() {
+        try {
+            var output = executeScriptKolya();
+            if (!output.getRight()) {
+                var failureResponse = parseFailure(output.getLeft());
+
+                Operations operations = new Operations();
+                operations.setDateOfCreation(new Date());
+                operations.setUserAccount("Админ");
+                operations.setDescription("Неудачная попытка создать расписание из заранее заготовленного конфига");
+                operationsRepository.save(operations);
+                return ResponseEntity.badRequest().body((failureResponse));
+            }
+            List<String> list = List.of(output.getLeft().split("\n"));
+            timetableService.saveNewPotentialTimeTable(list);
+            return ResponseEntity.ok(new MessageResponse("Новое потенциальное расписание сделано"));
+        } catch (IOException | InterruptedException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Произошла ошибка: " + e.getMessage()));
+        }
+    }
+
+    @Transactional
+    @PostMapping("/create_timetable_db_async")
+    public ResponseEntity<?> createTimeTableFromDBAsync() {
+        CompletableFuture<Pair<String, Boolean>> future = executeScriptDBAsync();
+
+        try {
+            Pair<String, Boolean> result = future.get(5, TimeUnit.SECONDS);
+            if (result.getRight()) {
+                return ResponseEntity.ok(new MessageResponse("Потенциальное расписание успешно создано"));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
+            }
+        } catch (TimeoutException e) {
+            return ResponseEntity.ok(new MessageResponse("Расписание еще выполняется, пожалуйста, подождите"));
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/create_timetable_kolya_async")
+    @Transactional
+    public ResponseEntity<?> createTimeTableKolyaAsync() {
+        CompletableFuture<Pair<String, Boolean>> future = executeScriptKolyaAsync();
+
+        try {
+            Pair<String, Boolean> result = future.get(5, TimeUnit.SECONDS);
+            if (result.getRight()) {
+                return ResponseEntity.ok(new MessageResponse("Потенциальное расписание успешно создано"));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
+            }
+        } catch (TimeoutException e) {
+            return ResponseEntity.ok(new MessageResponse("Расписание еще выполняется, пожалуйста, подождите"));
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/check_file")
+    @Transactional
+    public ResponseEntity<?> checkFile() {
         String baseDir = System.getProperty("user.dir");
+        String outputFilePath = baseDir + "/Algo/algorithm_output.txt";
+        try (BufferedReader reader = new BufferedReader(new FileReader(outputFilePath))) {
+            String firstLine = reader.readLine();
+            if ("FAILED".equals(firstLine)) {
+                StringBuilder builder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line).append("\n");
+                }
+                String data = builder.toString();
+                String jsonResponse = timetableService.convertFailureToJSON(data);
 
+                return ResponseEntity.badRequest().body((jsonResponse));
+            } else if ("SUCCESSFULLY".equals(firstLine)) {
+                return ResponseEntity.ok(new MessageResponse("Расписание параллельно выполняется, пожалуйста, подождите"));
+            } else {
+                return ResponseEntity.ok(new MessageResponse("Расписание всё еще составляется"));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Pair<String, Boolean> executeScript() throws IOException, InterruptedException {
+        String baseDir = System.getProperty("user.dir");
         String pythonExecutablePath = baseDir + "/Algo/venv/Scripts/python.exe";
         String pythonScriptPath = baseDir + "/Algo/algo.py";
-
+        String outputFilePath = baseDir + "/Algo/algorithm_output.txt";
         String jsonFilePath = baseDir + "/Algo/my_config_example.json";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
+            writer.write("");
+        } catch (IOException e) {
+            log.error("Error writing to file: " + outputFilePath, e);
+        }
+
         ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
-
         processBuilder.redirectErrorStream(true);
-
         Process process = processBuilder.start();
-
         String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251"))
                 .lines().collect(Collectors.joining("\n"));
-
         log.info(output);
+
         int exitCode = process.waitFor();
         if (exitCode != 0) {
             throw new IOException("Script exited with error code: " + exitCode + " Output: " + output);
@@ -155,34 +229,50 @@ public class PotentialTimetableController {
         String firstLine = output.split("\n")[0];
         String returnOutput = output.substring(output.indexOf('\n') + 1);
 
-        // Проверяем, соответствует ли первая строка "FAILED" или "SUCCESSFULLY"
         if ("FAILED".equals(firstLine)) {
-            // Обработка случая FAILED
             log.info("Script execution failed.");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
+                writer.write("FAILED\n");
+                writer.write(parseFailure(returnOutput).toString());
+            } catch (IOException e) {
+                log.error("Error writing to file: " + outputFilePath, e);
+            }
+            Operations operations = new Operations();
+            operations.setDateOfCreation(new Date());
+            operations.setUserAccount("Админ");
+            operations.setDescription("Неудачная попытка создать расписание из заранее заготовленного конфига");
+            operationsRepository.save(operations);
+
             return Pair.of(returnOutput, false);
         } else if ("SUCCESSFULLY".equals(firstLine)) {
-            // Обработка случая SUCCESSFULLY
             log.info("Script executed successfully.");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
+                writer.write("SUCCESSFULLY");
+            } catch (IOException e) {
+                log.error("Error writing to file: " + outputFilePath, e);
+            }
+            List<String> list = List.of(returnOutput.split("\n"));
+            timetableService.saveNewPotentialTimeTable(list);
             return Pair.of(returnOutput, true);
         } else {
-            // Обработка других случаев
             log.info("Script output does not start with 'FAILED' or 'SUCCESSFULLY'.");
         }
-
-
         return Pair.of(returnOutput, true);
     }
 
     public Pair<String, Boolean> executeScriptKolya() throws IOException, InterruptedException {
-
         String baseDir = System.getProperty("user.dir");
-
         String pythonScriptPath = baseDir + "/Algo/algo.py";
         String jsonFilePath = baseDir + "/Algo/config_example.json";
-
         String pythonExecutablePath = baseDir + "/Algo/venv/Scripts/python.exe";
-
+        String outputFilePath = baseDir + "/Algo/algorithm_output.txt";
         ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
+            writer.write("");
+        } catch (IOException e) {
+            log.error("Error writing to file: " + outputFilePath, e);
+        }
 
         processBuilder.redirectErrorStream(true);
 
@@ -190,6 +280,12 @@ public class PotentialTimetableController {
 
         String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251"))
                 .lines().collect(Collectors.joining("\n"));
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
+            writer.write(output);
+        } catch (IOException e) {
+            log.error("Error writing to file: " + outputFilePath, e);
+        }
 
         log.info(output);
 
@@ -201,21 +297,60 @@ public class PotentialTimetableController {
         String firstLine = output.split("\n")[0];
         String returnOutput = output.substring(output.indexOf('\n') + 1);
 
-        // Проверяем, соответствует ли первая строка "FAILED" или "SUCCESSFULLY"
         if ("FAILED".equals(firstLine)) {
-            // Обработка случая FAILED
             log.info("Script execution failed.");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
+                writer.write("FAILED\n");
+                writer.write(parseFailure(returnOutput).toString());
+            } catch (IOException e) {
+                log.error("Error writing to file: " + outputFilePath, e);
+            }
+            Operations operations = new Operations();
+            operations.setDateOfCreation(new Date());
+            operations.setUserAccount("Админ");
+            operations.setDescription("Неудачная попытка создать расписание из заранее заготовленного конфига");
+            operationsRepository.save(operations);
+
             return Pair.of(returnOutput, false);
         } else if ("SUCCESSFULLY".equals(firstLine)) {
-            // Обработка случая SUCCESSFULLY
             log.info("Script executed successfully.");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
+                writer.write("SUCCESSFULLY");
+            } catch (IOException e) {
+                log.error("Error writing to file: " + outputFilePath, e);
+            }
+            List<String> list = List.of(returnOutput.split("\n"));
+            timetableService.saveNewPotentialTimeTable(list);
+
             return Pair.of(returnOutput, true);
         } else {
-            // Обработка других случаев
             log.info("Script output does not start with 'FAILED' or 'SUCCESSFULLY'.");
         }
 
         return Pair.of(returnOutput, true);
+    }
+
+    @Async("taskExecutor")
+    public CompletableFuture<Pair<String, Boolean>> executeScriptDBAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return executeScript();
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+
+    @Async("taskExecutor")
+    public CompletableFuture<Pair<String, Boolean>> executeScriptKolyaAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return executeScriptKolya();
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 

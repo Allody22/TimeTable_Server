@@ -14,6 +14,7 @@ import ru.nsu.server.model.config.PlanItem;
 import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.current.WeekTimetable;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
+import ru.nsu.server.payload.response.FailureResponse;
 import ru.nsu.server.repository.GroupRepository;
 import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.repository.PlanRepository;
@@ -32,6 +33,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -176,6 +179,59 @@ public class TimetableService {
         }
 
         return planItems;
+    }
+
+    public String convertFailureToJSON(String input) {
+        List<FailureResponse> responses = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Регулярное выражение для извлечения данных об объектах FailureResponse
+        Pattern pattern = Pattern.compile("FailureResponse\\((.*?)\\)");
+        Matcher matcher = pattern.matcher(input);
+
+        while (matcher.find()) {
+            String[] properties = matcher.group(1).split(", ");
+            FailureResponse response = new FailureResponse();
+
+            for (String property : properties) {
+                String[] keyValue = property.split("=");
+                switch (keyValue[0]) {
+                    case "teacher":
+                        response.setTeacher(keyValue[1].equals("null") ? null : keyValue[1]);
+                        break;
+                    case "subject":
+                        response.setSubject(keyValue[1].equals("null") ? null : keyValue[1]);
+                        break;
+                    case "subjectType":
+                        response.setSubjectType(keyValue[1].equals("null") ? null : keyValue[1]);
+                        break;
+                    case "group":
+                        response.setGroup(keyValue[1].equals("null") ? null : Integer.valueOf(keyValue[1]));
+                        break;
+                    case "timesInAWeek":
+                        response.setTimesInAWeek(keyValue[1].equals("null") ? null : Integer.valueOf(keyValue[1]));
+                        break;
+                    case "day":
+                        response.setDay(keyValue[1].equals("null") ? null : Integer.valueOf(keyValue[1]));
+                        break;
+                    case "period":
+                        response.setPeriod(keyValue[1].equals("null") ? null : Integer.valueOf(keyValue[1]));
+                        break;
+                    case "room":
+                        response.setRoom(keyValue[1].equals("null") ? null : Integer.valueOf(keyValue[1]));
+                        break;
+                }
+            }
+            responses.add(response);
+        }
+
+        // Сериализуем список объектов FailureResponse в JSON
+        try {
+            return mapper.writeValueAsString(responses);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Transactional
