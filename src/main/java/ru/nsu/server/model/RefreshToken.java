@@ -25,7 +25,6 @@ import java.time.Instant;
 @AllArgsConstructor
 public class RefreshToken {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

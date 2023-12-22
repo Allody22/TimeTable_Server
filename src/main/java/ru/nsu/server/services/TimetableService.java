@@ -23,6 +23,7 @@ import ru.nsu.server.repository.WeekTimeTableRepository;
 import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -111,7 +112,8 @@ public class TimetableService {
 
         String filePath = baseDir + "/Algo/my_config_example.json";
 
-        Files.writeString(Paths.get(filePath), json);
+        Files.writeString(Paths.get(filePath), json, Charset.forName("windows-1251"));
+
     }
 
     public void saveConfigToFile() {
@@ -147,7 +149,7 @@ public class TimetableService {
                 int groupNumber = Integer.parseInt(group.getGroupNumber());
                 groupNumbers.add(groupNumber);
             } catch (NumberFormatException e) {
-                // Например, залогировать ошибку или пропустить эту группу
+                System.out.println("Чзх " + e);
             }
         }
 

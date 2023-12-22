@@ -169,7 +169,7 @@ public class RoomGroupTeacherSubjectPlanService {
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Добавлен новый предмет " + subject + " на столько раз в неделю " + timesInAWeek);
+        operations.setDescription("Добавлен новый предмет " + name + " на столько раз в неделю " + timesInAWeek);
         operationsRepository.save(operations);
     }
 

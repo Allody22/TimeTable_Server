@@ -143,7 +143,8 @@ public class PotentialTimetableController {
         processBuilder.redirectErrorStream(true);
 
         Process process = processBuilder.start();
-        String output = new BufferedReader(new InputStreamReader(process.getInputStream()))
+
+        String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251"))
                 .lines().collect(Collectors.joining("\n"));
 
         log.info(output);
@@ -176,17 +177,18 @@ public class PotentialTimetableController {
 
         String baseDir = System.getProperty("user.dir");
 
-        String pythonExecutablePath = baseDir + "/Algo/venv/Scripts/python.exe";
         String pythonScriptPath = baseDir + "/Algo/algo.py";
-
         String jsonFilePath = baseDir + "/Algo/config_example.json";
+
+        String pythonExecutablePath = baseDir + "/Algo/venv/Scripts/python.exe";
 
         ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
 
         processBuilder.redirectErrorStream(true);
 
         Process process = processBuilder.start();
-        String output = new BufferedReader(new InputStreamReader(process.getInputStream()))
+
+        String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251"))
                 .lines().collect(Collectors.joining("\n"));
 
         log.info(output);
