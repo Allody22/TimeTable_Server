@@ -194,7 +194,7 @@ public class PotentialTimetableController {
 
                 return ResponseEntity.badRequest().body((jsonResponse));
             } else if ("SUCCESSFULLY".equals(firstLine)) {
-                return ResponseEntity.ok(new MessageResponse("Расписание параллельно выполняется, пожалуйста, подождите"));
+                return ResponseEntity.ok(new MessageResponse("Расписание успешно составлено и есть в потенциальном"));
             } else {
                 return ResponseEntity.ok(new MessageResponse("Расписание всё еще составляется"));
             }
