@@ -15,8 +15,8 @@ public class SpringAsyncConfig {
     @Bean(name = "taskExecutor")
     public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);  // Установите размеры пула в соответствии с вашими нуждами
-        executor.setMaxPoolSize(2);
+        executor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
+        executor.setMaxPoolSize(Runtime.getRuntime().availableProcessors()*2);
         executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("AsyncThread-");
         executor.initialize();

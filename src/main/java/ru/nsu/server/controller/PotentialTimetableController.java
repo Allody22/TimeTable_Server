@@ -97,7 +97,6 @@ public class PotentialTimetableController {
     @PostMapping("/create_timetable_db")
     public ResponseEntity<?> createTimeTableFromDB() {
         try {
-            timetableService.saveConfigToFile();
             var output = executeScript();
             if (!output.getRight()) {
                 var failureResponse = parseFailure(output.getLeft());
@@ -204,6 +203,8 @@ public class PotentialTimetableController {
     }
 
     public Pair<String, Boolean> executeScript() throws IOException, InterruptedException {
+        timetableService.saveConfigToFile();
+
         String baseDir = System.getProperty("user.dir");
         String pythonExecutablePath = baseDir + "/Algo/venv/Scripts/python.exe";
         String pythonScriptPath = baseDir + "/Algo/algo.py";
