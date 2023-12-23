@@ -18,6 +18,7 @@ import ru.nsu.server.model.Operations;
 import ru.nsu.server.payload.response.FailureResponse;
 import ru.nsu.server.payload.response.MessageResponse;
 import ru.nsu.server.repository.OperationsRepository;
+import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
 import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
@@ -48,11 +49,15 @@ public class PotentialTimetableController {
 
     private final OperationsRepository operationsRepository;
 
+    private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
+
     @Autowired
     public PotentialTimetableController(
             TimetableService timetableService,
+            RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService,
             OperationsRepository operationsRepository) {
         this.timetableService = timetableService;
+        this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.operationsRepository = operationsRepository;
     }
 
@@ -72,6 +77,9 @@ public class PotentialTimetableController {
     @GetMapping("/group/{group}")
     @Transactional
     public ResponseEntity<?> getPotentialGroupTimetable(@PathVariable @Valid @NotBlank String group) {
+        if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)){
+            return ResponseEntity.badRequest().body((new MessageResponse("Ошибка! Такой группы не существует.")));
+        }
         return ResponseEntity.ok(timetableService.getPotentialGroupTimetable(group));
     }
 
@@ -84,6 +92,9 @@ public class PotentialTimetableController {
     @GetMapping("/room/{room}")
     @Transactional
     public ResponseEntity<?> getPotentialRoomTimetable(@PathVariable @Valid @NotBlank String room) {
+        if (!roomGroupTeacherSubjectPlanService.ifExistByRoomName(room)){
+            return ResponseEntity.badRequest().body((new MessageResponse("Ошибка! Такой комнаты не существует.")));
+        }
         return ResponseEntity.ok(timetableService.getPotentialRoomTimetable(room));
     }
 

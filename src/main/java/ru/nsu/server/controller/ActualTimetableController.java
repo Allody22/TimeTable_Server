@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.nsu.server.payload.response.MessageResponse;
+import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
 import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
@@ -22,11 +24,14 @@ import javax.validation.constraints.NotBlank;
 public class ActualTimetableController {
 
     private final TimetableService timetableService;
+    private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
     @Autowired
     public ActualTimetableController(
-            TimetableService timetableService) {
+            TimetableService timetableService,
+            RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService) {
         this.timetableService = timetableService;
+        this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
     }
 
     @GetMapping("/all")
@@ -38,6 +43,9 @@ public class ActualTimetableController {
     @GetMapping("/group/{group}")
     @Transactional
     public ResponseEntity<?> getGroupTimetable(@PathVariable @Valid @NotBlank String group) {
+        if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)){
+            return ResponseEntity.badRequest().body((new MessageResponse("Ошибка! Такой группы не существует.")));
+        }
         return ResponseEntity.ok(timetableService.getGroupTimetable(group));
     }
 
@@ -50,6 +58,9 @@ public class ActualTimetableController {
     @GetMapping("/room/{room}")
     @Transactional
     public ResponseEntity<?> getRoomTimetable(@PathVariable @Valid @NotBlank String room) {
+        if (!roomGroupTeacherSubjectPlanService.ifExistByRoomName(room)){
+            return ResponseEntity.badRequest().body((new MessageResponse("Ошибка! Такой комнаты не существует.")));
+        }
         return ResponseEntity.ok(timetableService.getRoomTimetable(room));
     }
 

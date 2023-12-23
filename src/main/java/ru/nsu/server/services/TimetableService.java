@@ -358,11 +358,19 @@ public class TimetableService {
 
 
     public List<WeekTimetable> getGroupTimetable(String group) {
-        return weekTimeTableRepository.getAllByGroupsContaining(group);
+        return weekTimeTableRepository.getAllByExactGroup(group);
     }
 
     public List<WeekTimetable> getTeacherTimetable(String teacher) {
-        return weekTimeTableRepository.getAllByTeacher(teacher);
+        List<WeekTimetable> timetables = weekTimeTableRepository.getAllByTeacher(teacher);
+
+//        for (WeekTimetable timetable : timetables) {
+//            if (timetable.getPairType().equals("lec")){
+//                timetable.setPairType("Лекция");
+//            }
+//        }
+
+        return timetables;
     }
 
     public List<WeekTimetable> getFacultyTimetable(String faculty) {
@@ -378,7 +386,7 @@ public class TimetableService {
     }
 
     public List<PotentialWeekTimetable> getPotentialGroupTimetable(String group) {
-        return potentialWeekTimeTableRepository.getAllByGroupsContaining(group);
+        return potentialWeekTimeTableRepository.getAllByExactGroup(group);
     }
 
     public List<PotentialWeekTimetable> getPotentialTeacherTimetable(String teacher) {
