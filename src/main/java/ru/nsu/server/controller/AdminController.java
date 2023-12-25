@@ -115,6 +115,10 @@ public class AdminController {
     @PostMapping("/create_plan")
     @Transactional
     public ResponseEntity<?> createPlan(@Valid @RequestBody PlanRequest planRequest) {
+        if (planRequest.getTimesInAWeek() > 42){
+            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Кол-во пар в неделю по" +
+                    " плану должно быть меньше 42"));
+        }
         roomGroupTeacherSubjectPlanService.saveNewPlan(planRequest.getTeacher(), planRequest.getSubject(), planRequest.getSubjectType(),
                 planRequest.getGroups(), planRequest.getTimesInAWeek());
         return ResponseEntity.ok(new MessageResponse("План успешно сохранен"));

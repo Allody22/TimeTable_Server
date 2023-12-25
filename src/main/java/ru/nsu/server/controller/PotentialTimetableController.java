@@ -156,7 +156,7 @@ public class PotentialTimetableController {
                         .body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
             }
         } catch (TimeoutException e) {
-            return ResponseEntity.ok(new MessageResponse("Расписание еще выполняется, пожалуйста, подождите"));
+            return ResponseEntity.ok(new MessageResponse("Расписание еще составляется, пожалуйста, подождите"));
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -178,7 +178,7 @@ public class PotentialTimetableController {
                         .body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
             }
         } catch (TimeoutException e) {
-            return ResponseEntity.ok(new MessageResponse("Расписание еще выполняется, пожалуйста, подождите"));
+            return ResponseEntity.ok(new MessageResponse("Расписание еще составляется, пожалуйста, подождите"));
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -205,7 +205,9 @@ public class PotentialTimetableController {
                 return ResponseEntity.badRequest().body((jsonResponse));
             } else if ("SUCCESSFULLY".equals(firstLine)) {
                 return ResponseEntity.ok(new MessageResponse("Расписание успешно составлено и есть в потенциальном"));
-            } else {
+            } else if ("EMPTY".equals(firstLine)) {
+                return ResponseEntity.ok(new MessageResponse("Алгоритм для запуска расписания еще никогда не запускался"));
+            }else {
                 return ResponseEntity.ok(new MessageResponse("Расписание всё еще составляется"));
             }
         } catch (IOException e) {
