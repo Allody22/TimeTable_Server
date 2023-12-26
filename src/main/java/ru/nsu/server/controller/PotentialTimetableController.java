@@ -285,7 +285,7 @@ public class PotentialTimetableController {
     public Pair<String, Boolean> executeScriptKolya() throws IOException, InterruptedException {
         String baseDir = System.getProperty("user.dir");
         String pythonScriptPath = baseDir + pythonAlgoURL;
-        String jsonFilePath = baseDir + "/Algo/src/resources/config_example.json";
+        String jsonFilePath = baseDir + "/Algo/config_example.json";
         String pythonExecutablePath = baseDir + pythonExecutableURL;
         String outputFilePath = baseDir + outputFileURL;
         ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
