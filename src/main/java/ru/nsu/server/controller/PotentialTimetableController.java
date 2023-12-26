@@ -51,11 +51,18 @@ public class PotentialTimetableController {
 
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
+//    private final String pythonExecutableURL = "/Algo/venv/Scripts/python.exe";
+//    private final String pythonAlgoURL = "/Algo/src/app/algo.py";
+//    private final  String outputFileURL = "/Algo/algorithm_output.txt";
+
+
+    private final String pythonExecutableURL = "/Algo/venv/Scripts/python.exe";
+    private final String pythonAlgoURL = "/Algo/algo.py";
+    private final String outputFileURL = "/Algo/algorithm_output.txt";
+
+
     @Autowired
-    public PotentialTimetableController(
-            TimetableService timetableService,
-            RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService,
-            OperationsRepository operationsRepository) {
+    public PotentialTimetableController(TimetableService timetableService, RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService, OperationsRepository operationsRepository) {
         this.timetableService = timetableService;
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.operationsRepository = operationsRepository;
@@ -77,7 +84,7 @@ public class PotentialTimetableController {
     @GetMapping("/group/{group}")
     @Transactional
     public ResponseEntity<?> getPotentialGroupTimetable(@PathVariable @Valid @NotBlank String group) {
-        if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)){
+        if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)) {
             return ResponseEntity.badRequest().body((new MessageResponse("Ошибка! Такой группы не существует.")));
         }
         return ResponseEntity.ok(timetableService.getPotentialGroupTimetable(group));
@@ -86,13 +93,16 @@ public class PotentialTimetableController {
     @GetMapping("/teacher/{teacher}")
     @Transactional
     public ResponseEntity<?> getPotentialTeacherTimetable(@PathVariable @Valid @NotBlank String teacher) {
+        if (!roomGroupTeacherSubjectPlanService.ifExistTeacherByFullName(teacher)){
+            return ResponseEntity.badRequest().body((new MessageResponse("Ошибка! Такого преподавателя не существует.")));
+        }
         return ResponseEntity.ok(timetableService.getPotentialTeacherTimetable(teacher));
     }
 
     @GetMapping("/room/{room}")
     @Transactional
     public ResponseEntity<?> getPotentialRoomTimetable(@PathVariable @Valid @NotBlank String room) {
-        if (!roomGroupTeacherSubjectPlanService.ifExistByRoomName(room)){
+        if (!roomGroupTeacherSubjectPlanService.ifExistByRoomName(room)) {
             return ResponseEntity.badRequest().body((new MessageResponse("Ошибка! Такой комнаты не существует.")));
         }
         return ResponseEntity.ok(timetableService.getPotentialRoomTimetable(room));
@@ -152,15 +162,13 @@ public class PotentialTimetableController {
             if (result.getRight()) {
                 return ResponseEntity.ok(new MessageResponse("Потенциальное расписание успешно создано"));
             } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
             }
         } catch (TimeoutException e) {
             return ResponseEntity.ok(new MessageResponse("Расписание еще составляется, пожалуйста, подождите"));
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
         }
     }
 
@@ -174,15 +182,13 @@ public class PotentialTimetableController {
             if (result.getRight()) {
                 return ResponseEntity.ok(new MessageResponse("Потенциальное расписание успешно создано"));
             } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
             }
         } catch (TimeoutException e) {
             return ResponseEntity.ok(new MessageResponse("Расписание еще составляется, пожалуйста, подождите"));
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
         }
     }
 
@@ -201,13 +207,15 @@ public class PotentialTimetableController {
                 }
                 String data = builder.toString();
                 String jsonResponse = timetableService.convertFailureToJSON(data);
-
                 return ResponseEntity.badRequest().body((jsonResponse));
+
             } else if ("SUCCESSFULLY".equals(firstLine)) {
                 return ResponseEntity.ok(new MessageResponse("Расписание успешно составлено и есть в потенциальном"));
+
             } else if ("EMPTY".equals(firstLine)) {
                 return ResponseEntity.ok(new MessageResponse("Алгоритм для запуска расписания еще никогда не запускался"));
-            }else {
+
+            } else {
                 return ResponseEntity.ok(new MessageResponse("Расписание всё еще составляется"));
             }
         } catch (IOException e) {
@@ -219,10 +227,11 @@ public class PotentialTimetableController {
         timetableService.saveConfigToFile();
 
         String baseDir = System.getProperty("user.dir");
-        String pythonExecutablePath = baseDir + "/Algo/venv/Scripts/python.exe";
-        String pythonScriptPath = baseDir + "/Algo/algo.py";
-        String outputFilePath = baseDir + "/Algo/algorithm_output.txt";
-        String jsonFilePath = baseDir + "/Algo/my_config_example.json";
+        String pythonExecutablePath = baseDir + pythonExecutableURL;
+        String pythonScriptPath = baseDir + pythonAlgoURL;
+        String outputFilePath = baseDir + outputFileURL;
+        String inputURL = "/Algo/my_config_example.json";
+        String jsonFilePath = baseDir + inputURL;
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
             writer.write("");
         } catch (IOException e) {
@@ -232,8 +241,7 @@ public class PotentialTimetableController {
         ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
-        String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251"))
-                .lines().collect(Collectors.joining("\n"));
+        String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251")).lines().collect(Collectors.joining("\n"));
         log.info(output);
 
         int exitCode = process.waitFor();
@@ -276,10 +284,10 @@ public class PotentialTimetableController {
 
     public Pair<String, Boolean> executeScriptKolya() throws IOException, InterruptedException {
         String baseDir = System.getProperty("user.dir");
-        String pythonScriptPath = baseDir + "/Algo/algo.py";
-        String jsonFilePath = baseDir + "/Algo/config_example.json";
-        String pythonExecutablePath = baseDir + "/Algo/venv/Scripts/python.exe";
-        String outputFilePath = baseDir + "/Algo/algorithm_output.txt";
+        String pythonScriptPath = baseDir + pythonAlgoURL;
+        String jsonFilePath = baseDir + "/Algo/src/resources/config_example.json";
+        String pythonExecutablePath = baseDir + pythonExecutableURL;
+        String outputFilePath = baseDir + outputFileURL;
         ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
@@ -292,15 +300,13 @@ public class PotentialTimetableController {
 
         Process process = processBuilder.start();
 
-        String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251"))
-                .lines().collect(Collectors.joining("\n"));
+        String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251")).lines().collect(Collectors.joining("\n"));
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
             writer.write(output);
         } catch (IOException e) {
             log.error("Error writing to file: " + outputFilePath, e);
         }
-
         log.info(output);
 
         int exitCode = process.waitFor();
@@ -324,8 +330,8 @@ public class PotentialTimetableController {
             operations.setUserAccount("Админ");
             operations.setDescription("Неудачная попытка создать расписание из заранее заготовленного конфига");
             operationsRepository.save(operations);
-
             return Pair.of(returnOutput, false);
+
         } else if ("SUCCESSFULLY".equals(firstLine)) {
             log.info("Script executed successfully.");
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
@@ -337,6 +343,7 @@ public class PotentialTimetableController {
             timetableService.saveNewPotentialTimeTable(list);
 
             return Pair.of(returnOutput, true);
+
         } else {
             log.info("Script output does not start with 'FAILED' or 'SUCCESSFULLY'.");
         }
@@ -418,7 +425,6 @@ public class PotentialTimetableController {
                 response.setRoom(Integer.parseInt(value));
                 break;
             default:
-                // Неизвестный ключ, возможно стоит логировать или обрабатывать по-другому
                 break;
         }
     }

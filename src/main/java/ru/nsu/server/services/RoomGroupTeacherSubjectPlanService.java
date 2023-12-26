@@ -186,6 +186,9 @@ public class RoomGroupTeacherSubjectPlanService {
         return subjectRepository.existsByName(subjectName);
     }
 
+    public boolean ifExistTeacherByFullName(String fullName){
+        return userRepository.existsByFullName(fullName);
+    }
     public List<String> getAllTeachers() {
         return userRepository.findAllUsersByRole(ERole.ROLE_TEACHER);
     }

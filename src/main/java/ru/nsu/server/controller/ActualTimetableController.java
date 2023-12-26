@@ -24,6 +24,7 @@ import javax.validation.constraints.NotBlank;
 public class ActualTimetableController {
 
     private final TimetableService timetableService;
+
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
     @Autowired
@@ -52,6 +53,9 @@ public class ActualTimetableController {
     @GetMapping("/teacher/{teacher}")
     @Transactional
     public ResponseEntity<?> getTeacherTimetable(@PathVariable @Valid @NotBlank String teacher) {
+        if (!roomGroupTeacherSubjectPlanService.ifExistTeacherByFullName(teacher)){
+            return ResponseEntity.badRequest().body((new MessageResponse("Ошибка! Такого преподавателя не существует.")));
+        }
         return ResponseEntity.ok(timetableService.getTeacherTimetable(teacher));
     }
 
