@@ -1,18 +1,12 @@
 package ru.nsu.server.controller;
 
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.exception.NotInDataBaseException;
 import ru.nsu.server.payload.requests.ConstraintRequest;
 import ru.nsu.server.payload.response.MessageResponse;
@@ -25,6 +19,7 @@ import javax.validation.constraints.NotBlank;
 @RestController
 @Slf4j
 @RequestMapping("/api/constraints")
+@Tag(name = "3. Constraint controller", description = "Контроллер ограничений. В нём человек может удалять, создавать и просматривать ограничения.")
 public class ConstraintController {
 
     private final ConstraintService constraintService;

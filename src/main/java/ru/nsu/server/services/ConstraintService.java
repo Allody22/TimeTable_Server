@@ -72,7 +72,7 @@ public class ConstraintService {
         if (group1 != null && group1 != -1) {
             sb.append(" первая группа: '").append(group1).append("',");
         }
-            if (group2 != null && group2 != -1) {
+        if (group2 != null && group2 != -1) {
             sb.append(" вторая группа: '").append(group2).append("',");
         }
         if (number != null && number != -1) {
@@ -92,7 +92,7 @@ public class ConstraintService {
             sb.append(" вторым преподавателем: '").append(teacher2).append("',");
         }
 
-        if (period != null && period!= -1) {
+        if (period != null && period != -1) {
             sb.append(" номером пары: '").append(teacher1).append("',");
         }
         if (sb.length() > initialLength) {

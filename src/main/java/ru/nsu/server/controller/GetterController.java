@@ -1,15 +1,12 @@
 package ru.nsu.server.controller;
 
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.services.ConstraintService;
 import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
@@ -21,6 +18,8 @@ import javax.validation.constraints.NotBlank;
 @RestController
 @Slf4j
 @RequestMapping("/get")
+@Tag(name = "4. Constraint controller", description = "Контроллер для получения константной информации. " +
+        "Тут можно получить поддерживаемые ограничения, существующие номера групп, имена учителей, названия факультетов и тп.")
 public class GetterController {
 
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
@@ -35,7 +34,7 @@ public class GetterController {
             OperationsRepository operationsRepository) {
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.constraintService = constraintService;
-        this.operationsRepository =operationsRepository;
+        this.operationsRepository = operationsRepository;
     }
 
     @GetMapping("/all_operations")

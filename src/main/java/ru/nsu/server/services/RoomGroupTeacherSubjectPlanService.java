@@ -3,18 +3,9 @@ package ru.nsu.server.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.nsu.server.model.Group;
-import ru.nsu.server.model.Operations;
-import ru.nsu.server.model.Plan;
-import ru.nsu.server.model.Room;
-import ru.nsu.server.model.Subject;
+import ru.nsu.server.model.*;
 import ru.nsu.server.model.constants.ERole;
-import ru.nsu.server.repository.GroupRepository;
-import ru.nsu.server.repository.OperationsRepository;
-import ru.nsu.server.repository.PlanRepository;
-import ru.nsu.server.repository.RoomRepository;
-import ru.nsu.server.repository.SubjectRepository;
-import ru.nsu.server.repository.UserRepository;
+import ru.nsu.server.repository.*;
 
 import java.util.Date;
 import java.util.List;
@@ -186,9 +177,10 @@ public class RoomGroupTeacherSubjectPlanService {
         return subjectRepository.existsByName(subjectName);
     }
 
-    public boolean ifExistTeacherByFullName(String fullName){
+    public boolean ifExistTeacherByFullName(String fullName) {
         return userRepository.existsByFullName(fullName);
     }
+
     public List<String> getAllTeachers() {
         return userRepository.findAllUsersByRole(ERole.ROLE_TEACHER);
     }

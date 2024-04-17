@@ -1,6 +1,7 @@
 package ru.nsu.server.controller;
 
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,11 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.configuration.security.jwt.JwtUtils;
 import ru.nsu.server.model.RefreshToken;
 import ru.nsu.server.payload.requests.AuthRequest;
@@ -33,6 +30,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/api")
+@Tag(name = "0. Auth controller", description = "Контроллер авторизации, в котором человек может получить свой jwt и refresh токен.")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;

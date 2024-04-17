@@ -1,6 +1,7 @@
 package ru.nsu.server.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,29 +16,20 @@ import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.current.WeekTimetable;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
 import ru.nsu.server.payload.response.FailureResponse;
-import ru.nsu.server.repository.GroupRepository;
-import ru.nsu.server.repository.OperationsRepository;
-import ru.nsu.server.repository.PlanRepository;
-import ru.nsu.server.repository.PotentialWeekTimeTableRepository;
-import ru.nsu.server.repository.RoomRepository;
-import ru.nsu.server.repository.WeekTimeTableRepository;
+import ru.nsu.server.repository.*;
 import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class TimetableService {
 
     private final WeekTimeTableRepository weekTimeTableRepository;
@@ -113,7 +105,7 @@ public class TimetableService {
 
         String baseDir = System.getProperty("user.dir");
 
-        String filePath = baseDir + "/Algo/my_config_example.json";
+        String filePath = baseDir + "/TimeTable_Algo/src/resources/config_example.json";
 
         Files.writeString(Paths.get(filePath), json, Charset.forName("windows-1251"));
 
@@ -125,7 +117,7 @@ public class TimetableService {
             toJson(configModel);
         } catch (IOException e) {
             // Обработка ошибок ввода-вывода
-            e.printStackTrace();
+            log.error("error with saving file to config: {}", e.getMessage());
         }
     }
 
@@ -152,7 +144,7 @@ public class TimetableService {
                 int groupNumber = Integer.parseInt(group.getGroupNumber());
                 groupNumbers.add(groupNumber);
             } catch (NumberFormatException e) {
-                System.out.println("Чзх " + e);
+                log.error("error converting group number: {}", group.getGroupNumber());
             }
         }
 
@@ -229,7 +221,7 @@ public class TimetableService {
         try {
             return mapper.writeValueAsString(responses);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("error with writing value as a string in converting failure to json method: {}", e.getMessage());
             return null;
         }
     }

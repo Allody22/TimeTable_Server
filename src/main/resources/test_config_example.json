@@ -1,0 +1,517 @@
+{
+  "groups": [
+    21201,
+    21213,
+    21214,
+    21215,
+    21216
+  ],
+  "rooms": {
+    "lec": [
+      118,
+      304,
+      402,
+      1274,
+      2128,
+      3107
+    ],
+    "lab": [
+      306,
+      1156,
+      2213,
+      2221,
+      3212,
+      4218
+    ],
+    "prac": [
+      1155,
+      1156,
+      1311,
+      1326,
+      2253,
+      2266,
+      3120,
+      3212,
+      3218,
+      3317,
+      4220
+    ]
+  },
+  "plan": [
+    {
+      "teacher": "maryasov",
+      "subject": "methods_of_translation_and_compilation",
+      "subject_type": "lec",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "gorchakov",
+      "subject": "electronics",
+      "subject_type": "lec",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "gorchakov",
+      "subject": "electronics",
+      "subject_type": "lab",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "ostapenko",
+      "subject": "computational_math",
+      "subject_type": "prac",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "ostapenko",
+      "subject": "computational_math",
+      "subject_type": "lec",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "psychology",
+      "subject": "computational_math",
+      "subject_type": "lec",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "andreev",
+      "subject": "networks",
+      "subject_type": "lab",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "ippolitov",
+      "subject": "networks",
+      "subject_type": "lec",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "grishkin",
+      "subject": "operating_systems",
+      "subject_type": "lab",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "pischik",
+      "subject": "databases",
+      "subject_type": "lec",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "rutman",
+      "subject": "operating_systems",
+      "subject_type": "lec",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "zligostev",
+      "subject": "methods_of_translation_and_compilation",
+      "subject_type": "prac",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "zhidkov",
+      "subject": "databases",
+      "subject_type": "lab",
+      "groups": [
+        21201
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "permyakov",
+      "subject": "cybersecurity",
+      "subject_type": "lec",
+      "groups": [
+        21213,
+        21214,
+        21215,
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "nedelko",
+      "subject": "machine_learning_methods",
+      "subject_type": "lec",
+      "groups": [
+        21213,
+        21214,
+        21215,
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "nedelko",
+      "subject": "machine_learning_methods",
+      "subject_type": "prac",
+      "groups": [
+        21213
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "vaskevich",
+      "subject": "computational_math",
+      "subject_type": "lec",
+      "groups": [
+        21213,
+        21214,
+        21215,
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "vaskevich",
+      "subject": "computational_math",
+      "subject_type": "prac",
+      "groups": [
+        21213
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "patrushev",
+      "subject": "data_processing_and_storage",
+      "subject_type": "lab",
+      "groups": [
+        21215
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "bukshev",
+      "subject": "introduction_to_the_mobile_development",
+      "subject_type": "lec",
+      "groups": [
+        21213,
+        21214,
+        21215,
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "miginsky",
+      "subject": "data_processing_and_storage",
+      "subject_type": "lec",
+      "groups": [
+        21213,
+        21214,
+        21215,
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "miginsky",
+      "subject": "software_engineering",
+      "subject_type": "lec",
+      "groups": [
+        21213,
+        21214,
+        21215,
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "miginsky",
+      "subject": "software_engineering",
+      "subject_type": "lab",
+      "groups": [
+        21213
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "kuzin",
+      "subject": "software_engineering",
+      "subject_type": "lab",
+      "groups": [
+        21215
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "vlasov",
+      "subject": "team_work",
+      "subject_type": "lec",
+      "groups": [
+        21213,
+        21214,
+        21215,
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "vlasov",
+      "subject": "team_work",
+      "subject_type": "prac",
+      "groups": [
+        21213
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "balabanov",
+      "subject": "cybersecurity",
+      "subject_type": "lab",
+      "groups": [
+        21215,
+        21213,
+        21214,
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "bogdanov",
+      "subject": "computational_math",
+      "subject_type": "prac",
+      "groups": [
+        21215
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "terenteva",
+      "subject": "english",
+      "subject_type": "prac",
+      "groups": [
+        21213,
+        21215
+      ],
+      "times_in_a_week": 2
+    },
+    {
+      "teacher": "sitnov",
+      "subject": "ctf",
+      "subject_type": "lec",
+      "groups": [
+        21213,
+        21215,
+        21214,
+        21216
+      ],
+      "times_in_a_week": 2
+    },
+    {
+      "teacher": "zligostev",
+      "subject": "data_processing_and_storage",
+      "subject_type": "lab",
+      "groups": [
+        21213
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "kutalev",
+      "subject": "data_processing_and_storage",
+      "subject_type": "lab",
+      "groups": [
+        21214
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "shvab",
+      "subject": "computational_math",
+      "subject_type": "prac",
+      "groups": [
+        21214
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "golosov",
+      "subject": "software_engineering",
+      "subject_type": "lab",
+      "groups": [
+        21214
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "brek",
+      "subject": "software_engineering",
+      "subject_type": "lab",
+      "groups": [
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "plusnin",
+      "subject": "data_processing_and_storage",
+      "subject_type": "lab",
+      "groups": [
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "levikin",
+      "subject": "computational_math",
+      "subject_type": "prac",
+      "groups": [
+        21216
+      ],
+      "times_in_a_week": 1
+    },
+    {
+      "teacher": "fizruk",
+      "subject": "physical_culture",
+      "subject_type": "lec",
+      "groups": [
+        21213,
+        21214,
+        21215,
+        21216
+      ],
+      "times_in_a_week": 2
+    }
+  ],
+  "constraints": [
+    {
+      "name": "groups_overlapping",
+      "args": {
+        "group_1": 21215,
+        "group_2": 21201
+      }
+    },
+    {
+      "name": "teachers_overlapping",
+      "args": {
+        "teacher_1": "permyakov",
+        "teacher_2": "nedelko"
+      }
+    },
+    {
+      "name": "teachers_overlapping",
+      "args": {
+        "teacher_1": "balabanov",
+        "teacher_2": "terenteva"
+      }
+    },
+    {
+      "name": "teachers_overlapping",
+      "args": {
+        "teacher_1": "balabanov",
+        "teacher_2": "sitnov"
+      }
+    },
+    {
+      "name": "teachers_overlapping",
+      "args": {
+        "teacher_1": "terenteva",
+        "teacher_2": "vaskevich"
+      }
+    },
+    {
+      "name": "number_of_teaching_days",
+      "args": {
+        "teacher": "kuzin",
+        "number": 1
+      }
+    },
+    {
+      "name": "number_of_teaching_days",
+      "args": {
+        "teacher": "bukshev",
+        "number": 1
+      }
+    },
+    {
+      "name": "number_of_teaching_days",
+      "args": {
+        "teacher": "terenteva",
+        "number": 1
+      }
+    },
+    {
+      "name": "number_of_teaching_days",
+      "args": {
+        "teacher": "vaskevich",
+        "number": 1
+      }
+    },
+    {
+      "name": "number_of_teaching_days",
+      "args": {
+        "teacher": "balabanov",
+        "number": 1
+      }
+    },
+    {
+      "name": "forbidden_period_for_teacher",
+      "args": {
+        "day": 1,
+        "period": 1,
+        "teacher": "balabanov"
+      }
+    },
+    {
+      "name": "forbidden_period_for_group",
+      "args": {
+        "day": 6,
+        "period": 7,
+        "group": 21215
+      }
+    },
+    {
+      "name": "forbidden_day_for_teacher",
+      "args": {
+        "day": 2,
+        "teacher": "balabanov"
+      }
+    },
+    {
+      "name": "forbidden_day_for_group",
+      "args": {
+        "day": 3,
+        "group": 21215
+      }
+    }
+  ]
+}

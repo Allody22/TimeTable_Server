@@ -1,22 +1,13 @@
 package ru.nsu.server.controller;
 
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import ru.nsu.server.payload.requests.GroupRequest;
-import ru.nsu.server.payload.requests.PlanRequest;
-import ru.nsu.server.payload.requests.RegistrationRequest;
-import ru.nsu.server.payload.requests.RoomRequest;
-import ru.nsu.server.payload.requests.SubjectRequest;
+import org.springframework.web.bind.annotation.*;
+import ru.nsu.server.payload.requests.*;
 import ru.nsu.server.payload.response.MessageResponse;
 import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
 import ru.nsu.server.services.UserService;
@@ -28,6 +19,8 @@ import javax.validation.constraints.NotBlank;
 @RestController
 @Slf4j
 @RequestMapping("/api/admin")
+@Tag(name = "2. Admin controller", description = "Админский контроллер, в котором человек может создавать " +
+        "и удалять группы, учителя, комнаты, учебный план и тп.")
 public class AdminController {
 
     private final UserService userService;
@@ -115,7 +108,7 @@ public class AdminController {
     @PostMapping("/create_plan")
     @Transactional
     public ResponseEntity<?> createPlan(@Valid @RequestBody PlanRequest planRequest) {
-        if (planRequest.getTimesInAWeek() > 42){
+        if (planRequest.getTimesInAWeek() > 42) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Кол-во пар в неделю по" +
                     " плану должно быть меньше 42"));
         }
