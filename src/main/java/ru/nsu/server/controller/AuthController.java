@@ -1,6 +1,11 @@
 package ru.nsu.server.controller;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +59,14 @@ public class AuthController {
         this.refreshTokenService = refreshTokenService;
     }
 
+    @Operation(
+            summary = "Запрос на авторизацию в аккаунт.",
+            description = """
+                    Проверяются данные пользователя и выдаётся jwt с рефреш токеном.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = JwtAuthResponse.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", description = "Пользователя с такой почтой не существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/auth")
     @Transactional
     public ResponseEntity<?> auth(@Valid @RequestBody AuthRequest authRequest) {
