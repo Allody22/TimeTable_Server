@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -67,12 +68,16 @@ public class PotentialTimetableController {
     @Value("${timetable.url.python.config}")
     private String pythoConfigUrl;
 
+    private SimpMessagingTemplate simpMessagingTemplate;
+
 
     @Autowired
-    public PotentialTimetableController(TimetableService timetableService, RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService, OperationsRepository operationsRepository) {
+    public PotentialTimetableController(TimetableService timetableService, RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService,
+                                        OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate) {
         this.timetableService = timetableService;
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.operationsRepository = operationsRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     @Operation(
@@ -88,6 +93,7 @@ public class PotentialTimetableController {
     @Transactional
     public ResponseEntity<?> makePotentialActual() {
         timetableService.convertOptionalTimeTableToActual();
+        simpMessagingTemplate.convertAndSend("Теперь потенциальное расписание, полученное последний раз с помощью генерации алгоритма стало актуальным!");
         return ResponseEntity.ok(new MessageResponse("Теперь потенциальное расписание, полученное последний раз с помощью генерации алгоритма стало актуальным!"));
     }
 
@@ -194,6 +200,7 @@ public class PotentialTimetableController {
         try {
             Pair<String, Boolean> result = future.get(5, TimeUnit.SECONDS);
             if (result.getRight()) {
+                simpMessagingTemplate.convertAndSend("Новое потенциальное расписание успешно составлено");
                 return ResponseEntity.ok(new MessageResponse("Потенциальное расписание успешно создано"));
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));

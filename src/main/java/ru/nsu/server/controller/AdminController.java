@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.payload.requests.*;
@@ -33,12 +34,16 @@ public class AdminController {
 
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
+    private SimpMessagingTemplate simpMessagingTemplate;
+
     @Autowired
     public AdminController(
             UserService userService,
-            RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService) {
+            RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService,
+            SimpMessagingTemplate simpMessagingTemplate) {
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.userService = userService;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
 
@@ -59,7 +64,8 @@ public class AdminController {
         if (roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(groupNumber)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая группа уже существует."));
         }
-        roomGroupTeacherSubjectPlanService.saveNewGroup(groupNumber, groupRequest.getFaculty(), groupRequest.getCourse(), groupRequest.getStudentsNumber());
+        String description = roomGroupTeacherSubjectPlanService.saveNewGroup(groupNumber, groupRequest.getFaculty(), groupRequest.getCourse(), groupRequest.getStudentsNumber());
+        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Группа " + groupNumber + " успешно сохранена"));
     }
 
@@ -77,7 +83,8 @@ public class AdminController {
         if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой группа не существует."));
         }
-        roomGroupTeacherSubjectPlanService.deleteGroupByNumber(group);
+        String description = roomGroupTeacherSubjectPlanService.deleteGroupByNumber(group);
+        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Группа " + group + " успешно удалена"));
     }
 
@@ -99,7 +106,8 @@ public class AdminController {
         if (roomGroupTeacherSubjectPlanService.ifExistBySubjectName(subjectName)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой предмет уже существует."));
         }
-        roomGroupTeacherSubjectPlanService.saveNewSubject(subjectName, subjectRequest.getTimesInAWeek());
+        String description = roomGroupTeacherSubjectPlanService.saveNewSubject(subjectName, subjectRequest.getTimesInAWeek());
+        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно сохранен"));
     }
 
@@ -118,7 +126,8 @@ public class AdminController {
         if (!roomGroupTeacherSubjectPlanService.ifExistBySubjectName(subjectName)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такого предмет не существует."));
         }
-        roomGroupTeacherSubjectPlanService.deleteSubject(subjectName);
+        String description = roomGroupTeacherSubjectPlanService.deleteSubject(subjectName);
+        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно удален"));
     }
 
@@ -139,7 +148,8 @@ public class AdminController {
         if (roomGroupTeacherSubjectPlanService.ifExistByRoomName(roomName)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая комната уже существует."));
         }
-        roomGroupTeacherSubjectPlanService.saveNewRoom(roomName, roomRequest.getType(), roomRequest.getCapacity());
+        String description = roomGroupTeacherSubjectPlanService.saveNewRoom(roomName, roomRequest.getType(), roomRequest.getCapacity());
+        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Комната " + roomName + " успешно сохранен"));
     }
 
@@ -157,7 +167,8 @@ public class AdminController {
         if (!roomGroupTeacherSubjectPlanService.ifExistByRoomName(room)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой комнаты не существует."));
         }
-        roomGroupTeacherSubjectPlanService.deleteRoom(room);
+        String description = roomGroupTeacherSubjectPlanService.deleteRoom(room);
+        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Комната " + room + " успешно удалена"));
     }
 
@@ -177,8 +188,9 @@ public class AdminController {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Кол-во пар в неделю по" +
                     " плану должно быть меньше 42"));
         }
-        roomGroupTeacherSubjectPlanService.saveNewPlan(planRequest.getTeacher(), planRequest.getSubject(), planRequest.getSubjectType(),
+        String description = roomGroupTeacherSubjectPlanService.saveNewPlan(planRequest.getTeacher(), planRequest.getSubject(), planRequest.getSubjectType(),
                 planRequest.getGroups(), planRequest.getTimesInAWeek());
+        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("План успешно сохранен"));
     }
 
@@ -197,7 +209,8 @@ public class AdminController {
         if (!roomGroupTeacherSubjectPlanService.ifExistPlanById(id)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Плана с айди " + id + " не существует."));
         }
-        roomGroupTeacherSubjectPlanService.deletePlanById(id);
+        String description = roomGroupTeacherSubjectPlanService.deletePlanById(id);
+        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("План успешно удалён."));
     }
 
@@ -219,11 +232,11 @@ public class AdminController {
         if (userService.existByEmailCheck(newUserEmail)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая почта уже зарегистрирована."));
         }
-        String newUserPassword = userService.saveNewUser(newUserEmail, registrationRequest.getFullName(),
+        String description = userService.saveNewUser(newUserEmail, registrationRequest.getFullName(),
                 registrationRequest.getPhone());
 
-        log.info("User password:{}", newUserPassword);
-        return ResponseEntity.ok(new MessageResponse("Пользователь успешно зарегистрирован с паролем:" + newUserPassword));
+        simpMessagingTemplate.convertAndSend(description);
+        return ResponseEntity.ok(new MessageResponse("Новый пользователь успешно зарегистрирован."));
     }
 
     @Operation(
@@ -243,11 +256,12 @@ public class AdminController {
         if (userService.existByEmailCheck(newUserEmail)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая почта уже зарегистрирована."));
         }
-        String newUserPassword = userService.saveNewTeacher(newUserEmail, registrationRequest.getFullName(),
+        String description = userService.saveNewTeacher(newUserEmail, registrationRequest.getFullName(),
                 registrationRequest.getPhone());
 
-        log.info("teacher password:" + newUserPassword);
-        return ResponseEntity.ok(new MessageResponse("Пользователь успешно зарегистрирован с паролем:" + newUserPassword));
+        simpMessagingTemplate.convertAndSend(description);
+
+        return ResponseEntity.ok(new MessageResponse("Новый учитель успешно зарегистрирован."));
     }
 
     //    @PreAuthorize("hasRole('ADMINISTRATOR')")
@@ -269,10 +283,11 @@ public class AdminController {
         if (userService.existByEmailCheck(newUserEmail)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая почта уже зарегистрирована."));
         }
-        String newUserPassword = userService.saveNewAdmin(newUserEmail, registrationRequest.getFullName(),
+        String description = userService.saveNewAdmin(newUserEmail, registrationRequest.getFullName(),
                 registrationRequest.getPhone());
 
-        log.info("admin password:" + newUserPassword);
-        return ResponseEntity.ok(new MessageResponse("Пользователь успешно зарегистрирован с паролем:" + newUserPassword));
+        simpMessagingTemplate.convertAndSend(description);
+
+        return ResponseEntity.ok(new MessageResponse("Новый администратор успешно зарегистрирован."));
     }
 }

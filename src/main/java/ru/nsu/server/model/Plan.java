@@ -29,4 +29,7 @@ public class Plan {
 
     @Column(name = "times_in_a_week")
     private int timesInAWeek;
+
+    @Column(name = "user_name")
+    private String userName;
 }

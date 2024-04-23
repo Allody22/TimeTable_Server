@@ -38,7 +38,7 @@ public class RoomGroupTeacherSubjectPlanService {
     }
 
     @Transactional
-    public void saveNewGroup(String groupNumber, String faculty, int course, int studentsNumber) {
+    public String saveNewGroup(String groupNumber, String faculty, int course, int studentsNumber) {
         Group group = new Group();
         group.setGroupNumber(groupNumber);
         group.setCourse(course);
@@ -49,20 +49,24 @@ public class RoomGroupTeacherSubjectPlanService {
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Сохранена группа с номером " + groupNumber + " для курса " + course + " и факультета"
-                + faculty + " с количеством студентов " + studentsNumber);
+        String description = "Сохранена группа с номером '" + groupNumber + "' для курса '" + course + "' и факультета '"
+                + faculty + "' с количеством студентов " + studentsNumber;
+        operations.setDescription(description);
         operationsRepository.save(operations);
+        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
     }
 
     @Transactional
-    public void deleteGroupByNumber(String groupNumber) {
+    public String deleteGroupByNumber(String groupNumber) {
         groupRepository.deleteGroupByGroupNumber(groupNumber);
 
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Удалена группа с номером " + groupNumber);
+        String description = "Удалена группа с номером '" + groupNumber + "'";
+        operations.setDescription(description);
         operationsRepository.save(operations);
+        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
     }
 
     public List<Group> getAllGroups() {
@@ -86,7 +90,7 @@ public class RoomGroupTeacherSubjectPlanService {
     }
 
     @Transactional
-    public void saveNewRoom(String name, String type, int capacity) {
+    public String saveNewRoom(String name, String type, int capacity) {
         Room room = new Room();
         room.setName(name);
         room.setCapacity(capacity);
@@ -96,23 +100,27 @@ public class RoomGroupTeacherSubjectPlanService {
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Сохранена комната с номером " + name + " на " + capacity + " людей с типом" + type);
+        String description = "Сохранена комната с номером '" + name + "' на '" + capacity + "' людей с типом" + type;
+        operations.setDescription(description);
         operationsRepository.save(operations);
+        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
     }
 
     @Transactional
-    public void deleteRoom(String name) {
+    public String deleteRoom(String name) {
         roomRepository.deleteRoomByName(name);
 
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Удалена комната с номером " + name);
+        String description = "Удалена комната с номером " + name;
+        operations.setDescription(description);
         operationsRepository.save(operations);
+        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
     }
 
     @Transactional
-    public void saveNewPlan(String teacher, String subjectName, String subjectType,
+    public String saveNewPlan(String teacher, String subjectName, String subjectType,
                             String groups, int timesInAWeek) {
         Plan plan = new Plan();
         plan.setGroups(groups);
@@ -120,25 +128,30 @@ public class RoomGroupTeacherSubjectPlanService {
         plan.setTeacher(teacher);
         plan.setSubject(subjectName);
         plan.setSubjectType(subjectType);
+        plan.setUserName("Admin");
         planRepository.save(plan);
 
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Добавлен новый план для групп " + groups + " " + timesInAWeek + " раз в неделю с преподавателем "
-                + teacher + " и предметом " + subjectName + " и типом предмета " + subjectType + " с айди " + plan.getId());
+        String description = "Добавлен новый план для групп '" + groups + "' на '" + timesInAWeek + "' раз в неделю с преподавателем '"
+                + teacher + "' и предметом '" + subjectName + "' и типом предмета '" + subjectType + "' с созданным айди плана " + plan.getId();
+        operations.setDescription(description);
         operationsRepository.save(operations);
+        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
     }
 
     @Transactional
-    public void deletePlanById(Long id) {
+    public String deletePlanById(Long id) {
         planRepository.deleteById(id);
 
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Удалён план с айди " + id);
+        String description = "Удалён план с айди " + id;
+        operations.setDescription(description);
         operationsRepository.save(operations);
+        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
     }
 
     public boolean ifExistPlanById(Long id) {
@@ -151,7 +164,7 @@ public class RoomGroupTeacherSubjectPlanService {
 
 
     @Transactional
-    public void saveNewSubject(String name, int timesInAWeek) {
+    public String saveNewSubject(String name, int timesInAWeek) {
         Subject subject = new Subject();
         subject.setName(name);
         subject.setTimesInAWeek(timesInAWeek);
@@ -160,13 +173,22 @@ public class RoomGroupTeacherSubjectPlanService {
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Добавлен новый предмет " + name + " на столько раз в неделю " + timesInAWeek);
+        String description = "Добавлен новый предмет '" + name + "' на столько раз в неделю " + timesInAWeek;
+        operations.setDescription(description);
         operationsRepository.save(operations);
+        return description;
     }
 
     @Transactional
-    public void deleteSubject(String name) {
+    public String deleteSubject(String name) {
         subjectRepository.deleteSubjectByName(name);
+
+        Operations operations = new Operations();
+        operations.setDateOfCreation(new Date());
+        operations.setUserAccount("Админ");
+        String description = "Удалён предмет '" + name + "'" ;
+        operations.setDescription(description);
+        return description;
     }
 
     public List<String> getAllSubjects() {

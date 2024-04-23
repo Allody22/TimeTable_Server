@@ -1,5 +1,6 @@
 package ru.nsu.server.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.Random;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -75,9 +77,12 @@ public class UserService {
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Зарегистрирован администратор с именем " + fullName + " и почтой " + email);
+        String description = "Зарегистрирован новый админ с именем '" + fullName + "' и почтой " + email;
+        operations.setDescription(description);
         operationsRepository.save(operations);
-        return userPassword;
+        log.info("admin password:{}", userPassword);
+
+        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
     }
 
     public String saveNewTeacher(String email, String fullName, String phone) {
@@ -105,10 +110,13 @@ public class UserService {
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Зарегистрирован учитель с именем " + fullName + " и почтой " + email);
+        String description = "Зарегистрирован новый учитель с именем '" + fullName + "' и почтой " + email;
+        operations.setDescription(description);
         operationsRepository.save(operations);
 
-        return userPassword;
+        log.info("teacher password:{}", userPassword);
+
+        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
     }
 
     public String saveNewUser(String email, String fullName, String phone) {
@@ -132,8 +140,11 @@ public class UserService {
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        operations.setDescription("Зарегистрирован новый пользователь с именем " + fullName + " и почтой" + email);
+        String description = "Зарегистрирован новый пользователь с именем '" + fullName + "' и почтой " + email;
+        operations.setDescription(description);
         operationsRepository.save(operations);
-        return userPassword;
+        log.info("User password:{}", userPassword);
+
+        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
     }
 }
