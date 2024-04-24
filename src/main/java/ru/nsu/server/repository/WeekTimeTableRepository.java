@@ -18,6 +18,14 @@ public interface WeekTimeTableRepository extends JpaRepository<WeekTimetable, Lo
 
     List<WeekTimetable> getWeekTimetablesByDayNumber(int dayNumber);
 
+    Optional<List<WeekTimetable>> findByTeacherAndDayNumberAndPairNumber(String teacher, int dayNumber, int pairNumber);
+
+    Optional<List<WeekTimetable>> findByDayNumberAndPairNumberAndRoom(int dayNumber, int pairNumber, String roomNumber);
+
+//    boolean existsByTeacherAndDayNumberAndPairNumber(String teacher, int dayNumber, int pairNumber);
+
+//    boolean existsByDayNumberAndPairNumberAndRoom(int dayNumber, int pairNumber, String roomNumber);
+
     List<WeekTimetable> getAllByGroupsContaining(String groupNumber);
 
     @Query(value = "SELECT * FROM week_timetable WHERE :group = ANY(string_to_array(groups, ','))", nativeQuery = true)

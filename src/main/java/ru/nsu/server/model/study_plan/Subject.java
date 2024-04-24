@@ -1,4 +1,4 @@
-package ru.nsu.server.model;
+package ru.nsu.server.model.study_plan;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -6,10 +6,10 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "faculties")
+@Table(name = "subjects")
 @NoArgsConstructor
 @Data
-public class Faculty {
+public class Subject {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,4 +18,6 @@ public class Faculty {
     @Column(name = "name", unique = true)
     private String name;
 
+    @Column(name = "times_in_a_week")
+    private int timesInAWeek;
 }

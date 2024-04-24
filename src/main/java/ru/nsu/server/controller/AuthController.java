@@ -18,7 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.configuration.security.jwt.JwtUtils;
-import ru.nsu.server.model.RefreshToken;
+import ru.nsu.server.model.user.RefreshToken;
 import ru.nsu.server.payload.requests.AuthRequest;
 import ru.nsu.server.payload.response.JwtAuthResponse;
 import ru.nsu.server.payload.response.MessageResponse;

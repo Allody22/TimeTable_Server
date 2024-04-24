@@ -1,4 +1,4 @@
-package ru.nsu.server.model;
+package ru.nsu.server.model.study_plan;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,4 +1,4 @@
-package ru.nsu.server.model;
+package ru.nsu.server.model.user;
 
 import lombok.*;
 import org.hibernate.annotations.Cascade;

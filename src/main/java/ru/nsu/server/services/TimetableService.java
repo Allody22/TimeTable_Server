@@ -1,20 +1,27 @@
 package ru.nsu.server.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.nsu.server.model.Group;
-import ru.nsu.server.model.Operations;
-import ru.nsu.server.model.Plan;
-import ru.nsu.server.model.Room;
+import ru.nsu.server.exception.ConflictChangesException;
+import ru.nsu.server.exception.EmptyDataException;
+import ru.nsu.server.exception.NotInDataBaseException;
 import ru.nsu.server.model.config.ConfigModel;
 import ru.nsu.server.model.config.ConstraintModel;
 import ru.nsu.server.model.config.PlanItem;
 import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.current.WeekTimetable;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
+import ru.nsu.server.model.study_plan.Group;
+import ru.nsu.server.model.study_plan.Plan;
+import ru.nsu.server.model.study_plan.Room;
+import ru.nsu.server.model.user.Operations;
+import ru.nsu.server.payload.requests.ChangeDayAndPairNumberAndRoomRequest;
+import ru.nsu.server.payload.requests.ChangeDayAndPairNumberRequest;
+import ru.nsu.server.payload.requests.ChangeRoomRequest;
+import ru.nsu.server.payload.requests.ChangeTeacherRequest;
 import ru.nsu.server.payload.response.FailureResponse;
 import ru.nsu.server.repository.*;
 import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
@@ -30,6 +37,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class TimetableService {
 
     private final WeekTimeTableRepository weekTimeTableRepository;
@@ -46,17 +54,152 @@ public class TimetableService {
 
     private final OperationsRepository operationsRepository;
 
-    @Autowired
-    public TimetableService(WeekTimeTableRepository weekTimeTableRepository, PotentialWeekTimeTableRepository potentialWeekTimeTableRepository,
-                            RoomRepository roomRepository, PlanRepository planRepository, OperationsRepository operationsRepository,
-                            GroupRepository groupRepository, UniversalConstraintRepository universalConstraintRepository) {
-        this.universalConstraintRepository = universalConstraintRepository;
-        this.weekTimeTableRepository = weekTimeTableRepository;
-        this.operationsRepository = operationsRepository;
-        this.roomRepository = roomRepository;
-        this.planRepository = planRepository;
-        this.groupRepository = groupRepository;
-        this.potentialWeekTimeTableRepository = potentialWeekTimeTableRepository;
+    private final UserRepository userRepository;
+
+    @Transactional
+    public boolean changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
+        Long pairId = changeDayAndPairNumberRequest.getSubjectId();
+        WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
+                .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
+
+        Integer newDayNumber = changeDayAndPairNumberRequest.getNewDayNumber();
+        Integer newPairNumber = changeDayAndPairNumberRequest.getNewPairNumber();
+        if (newDayNumber == foundedTimeTablePart.getDayNumber() && newPairNumber == foundedTimeTablePart.getPairNumber()) {
+            throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
+        }
+        checkNewDayAndPairPeriod(newDayNumber, newPairNumber, foundedTimeTablePart);
+
+        foundedTimeTablePart.setDayNumber(newDayNumber);
+        foundedTimeTablePart.setPairNumber(newPairNumber);
+        weekTimeTableRepository.save(foundedTimeTablePart);
+        return true;
+    }
+
+    @Transactional
+    public boolean changeRoom(ChangeRoomRequest changeRoomRequest) {
+        Long pairId = changeRoomRequest.getSubjectId();
+        WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
+                .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
+
+        String newRoomName = changeRoomRequest.getNewRoom();
+        if (Objects.equals(newRoomName, foundedTimeTablePart.getRoom())) {
+            throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
+        }
+        checkNewRoom(newRoomName, foundedTimeTablePart);
+        foundedTimeTablePart.setRoom(newRoomName);
+        weekTimeTableRepository.save(foundedTimeTablePart);
+        return true;
+    }
+
+    @Transactional
+    public boolean changeTeacher(ChangeTeacherRequest changeTeacherRequest) {
+        Long pairId = changeTeacherRequest.getSubjectId();
+        WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
+                .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
+
+        String newTeacher = changeTeacherRequest.getNewTeacherFullName();
+        checkNewTeacher(newTeacher, foundedTimeTablePart);
+
+        if (Objects.equals(newTeacher, foundedTimeTablePart.getTeacher())) {
+            throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
+        }
+
+        foundedTimeTablePart.setTeacher(newTeacher);
+        weekTimeTableRepository.save(foundedTimeTablePart);
+        return true;
+    }
+
+    @Transactional
+    public boolean changeDayAndPairNumberAndRoom(ChangeDayAndPairNumberAndRoomRequest ChangeDayAndPairNumberAndRoomRequest) {
+        Long pairId = ChangeDayAndPairNumberAndRoomRequest.getSubjectId();
+        WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
+                .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
+
+        Integer newDayNumber = ChangeDayAndPairNumberAndRoomRequest.getNewDayNumber();
+        Integer newPairNumber = ChangeDayAndPairNumberAndRoomRequest.getNewPairNumber();
+        String newRoomName = ChangeDayAndPairNumberAndRoomRequest.getNewRoom();
+
+        if (newDayNumber == foundedTimeTablePart.getDayNumber() && newPairNumber == foundedTimeTablePart.getPairNumber()
+                && Objects.equals(newRoomName, foundedTimeTablePart.getRoom())) {
+            throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
+        }
+        //Время устанавливаем все данные в эту сущность, а если что-то пойдёт не так, то изменения просто откатятся
+        foundedTimeTablePart.setDayNumber(newDayNumber);
+        foundedTimeTablePart.setPairNumber(newPairNumber);
+        foundedTimeTablePart.setRoom(newRoomName);
+
+        //Сначала проверяем может ли быть существовать такое изменение по комнате, а потом по номеру дня и периоду
+        checkNewRoom(newRoomName, foundedTimeTablePart);
+        checkNewDayAndPairPeriod(newDayNumber, newPairNumber, foundedTimeTablePart);
+
+        weekTimeTableRepository.save(foundedTimeTablePart);
+        return true;
+    }
+
+
+    private void checkNewDayAndPairPeriod(Integer newDayNumber, Integer newPairNumber, WeekTimetable foundedTimeTablePart) {
+        if (newDayNumber == null || newPairNumber == null) {
+            throw new EmptyDataException("В ограничение на изменение дня и номера пары обязательно надо передать эти параметры!");
+        }
+        //Если преподаватель в этот день занят и в это время, то сразу лив
+        Optional<List<WeekTimetable>> optionalListOfPairsByTeacher = weekTimeTableRepository.findByTeacherAndDayNumberAndPairNumber(foundedTimeTablePart.getTeacher(), newDayNumber, newPairNumber);
+        if (optionalListOfPairsByTeacher.isPresent()) {
+            for (var currentPair : optionalListOfPairsByTeacher.get()) {
+                if (!currentPair.equals(foundedTimeTablePart)) {
+                    throw new ConflictChangesException("Преподаватель '" + foundedTimeTablePart.getTeacher() + "' уже занят в это время на паре '" + currentPair.getSubjectName() + "'.");
+                }
+            }
+        }
+
+        Optional<List<WeekTimetable>> optionalListOfPairsByRoom = weekTimeTableRepository.findByDayNumberAndPairNumberAndRoom(newDayNumber, newPairNumber, foundedTimeTablePart.getRoom());
+        //Если этот кабинет в этот день и пару занят то сразу лив
+        if (optionalListOfPairsByRoom.isPresent()) {
+            for (var currentPair : optionalListOfPairsByRoom.get()) {
+                if (!currentPair.equals(foundedTimeTablePart)) {
+                    throw new ConflictChangesException("В этом кабинете в этот день и период уже стоит пара '" + currentPair.getSubjectName() + "'.");
+                }
+            }
+        }
+    }
+
+    private void checkNewTeacher(String newTeacher, WeekTimetable foundedTimeTablePart) {
+        if (newTeacher == null || newTeacher.isBlank()) {
+            throw new EmptyDataException("В ограничение на изменение комнаты обязательно надо передать комнату!");
+        }
+        if (!userRepository.existsByFullName(newTeacher)) {
+            throw new ConflictChangesException("Преподавателя с данными '" + newTeacher + "' не существует в базе данных");
+        }
+
+        //Если у преподавателя уже
+        Optional<List<WeekTimetable>> optionalListOfPairsByTeacher = weekTimeTableRepository.findByTeacherAndDayNumberAndPairNumber(newTeacher, foundedTimeTablePart.getDayNumber(), foundedTimeTablePart.getPairNumber());
+        if (optionalListOfPairsByTeacher.isPresent()) {
+            for (var currentPair : optionalListOfPairsByTeacher.get()) {
+                if (!currentPair.equals(foundedTimeTablePart)) {
+                    throw new ConflictChangesException("Преподаватель '" + foundedTimeTablePart.getTeacher() + "' уже занят в это время на паре '" + currentPair.getSubjectName() + "'.");
+                }
+            }
+        }
+    }
+
+    private void checkNewRoom(String newRoomName, WeekTimetable foundedTimeTablePart) {
+        if (newRoomName == null || newRoomName.isBlank()) {
+            throw new EmptyDataException("В ограничение на изменение комнаты обязательно надо передать комнату!");
+        }
+        Room newRoomEntity = roomRepository.findRoomByName(newRoomName)
+                .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует комната с названием " + newRoomName));
+        //Какая-то обработка вместимости, типа комнаты
+        if (!newRoomEntity.getType().equals(foundedTimeTablePart.getPairType())) {
+            throw new ConflictChangesException("Данный тип пары не соответствует типу новой комнаты");
+        }
+
+        Optional<List<WeekTimetable>> optionalListOfPairsByDayAndPairNumberAndRoom = weekTimeTableRepository.findByDayNumberAndPairNumberAndRoom(foundedTimeTablePart.getDayNumber(), foundedTimeTablePart.getPairNumber(), newRoomName);
+        if (optionalListOfPairsByDayAndPairNumberAndRoom.isPresent()) {
+            for (var currentPair : optionalListOfPairsByDayAndPairNumberAndRoom.get()) {
+                if (!currentPair.equals(foundedTimeTablePart)) {
+                    throw new ConflictChangesException("В этом '" + newRoomName + "' в этот день и период уже стоит пара '" + currentPair.getSubjectName() + "'.");
+                }
+            }
+        }
     }
 
     public ConfigModel fillConfigFileUniversal() {
@@ -245,7 +388,7 @@ public class TimetableService {
             weekTimetable.setPairType(subject.getPairType());
             weekTimeTableRepository.save(weekTimetable);
         }
-        potentialWeekTimeTableRepository.deleteAll();
+//        potentialWeekTimeTableRepository.deleteAll();
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");

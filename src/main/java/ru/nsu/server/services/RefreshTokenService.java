@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.nsu.server.exception.TokenRefreshException;
-import ru.nsu.server.model.RefreshToken;
+import ru.nsu.server.model.user.RefreshToken;
 import ru.nsu.server.repository.RefreshTokenRepository;
 import ru.nsu.server.repository.UserRepository;
 

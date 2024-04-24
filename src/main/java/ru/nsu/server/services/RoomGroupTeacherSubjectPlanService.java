@@ -3,8 +3,12 @@ package ru.nsu.server.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.nsu.server.model.*;
 import ru.nsu.server.model.constants.ERole;
+import ru.nsu.server.model.study_plan.Group;
+import ru.nsu.server.model.study_plan.Plan;
+import ru.nsu.server.model.study_plan.Room;
+import ru.nsu.server.model.study_plan.Subject;
+import ru.nsu.server.model.user.Operations;
 import ru.nsu.server.repository.*;
 
 import java.util.Date;

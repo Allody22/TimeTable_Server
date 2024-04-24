@@ -1,4 +1,4 @@
-package ru.nsu.server.model;
+package ru.nsu.server.model.constants;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -6,18 +6,16 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "constraints_names")
+@Table(name = "faculties")
 @NoArgsConstructor
 @Data
-public class ConstraintsNames {
+public class Faculty {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
+    @Column(name = "name", unique = true)
     private String name;
 
-    @Column(name = "ru_name")
-    private String ruName;
 }

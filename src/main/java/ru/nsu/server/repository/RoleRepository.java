@@ -3,8 +3,8 @@ package ru.nsu.server.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import ru.nsu.server.model.Role;
 import ru.nsu.server.model.constants.ERole;
+import ru.nsu.server.model.user.Role;
 
 import javax.transaction.Transactional;
 import java.util.List;

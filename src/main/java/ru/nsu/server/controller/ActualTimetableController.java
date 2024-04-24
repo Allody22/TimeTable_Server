@@ -35,6 +35,7 @@ public class ActualTimetableController {
 
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
+
     @Operation(
             summary = "Получение всего актуального расписания для всех факультетов, групп и тп.",
             description = """

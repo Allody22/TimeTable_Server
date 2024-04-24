@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import ru.nsu.server.model.constants.DestinationPrefixes;
 import ru.nsu.server.payload.requests.*;
 import ru.nsu.server.payload.response.MessageResponse;
 import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
@@ -44,6 +45,15 @@ public class AdminController {
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.userService = userService;
         this.simpMessagingTemplate = simpMessagingTemplate;
+    }
+
+    @PostMapping("/test/sendMessage")
+    public ResponseEntity<?> sendMessageTest() {
+        String testMessage = "Это тестовое сообщение";
+        log.info("message simp " + simpMessagingTemplate.toString());
+        simpMessagingTemplate.convertAndSend(testMessage);
+        simpMessagingTemplate.convertAndSend(DestinationPrefixes.NOTIFICATIONS + "/newLog", testMessage);
+        return ResponseEntity.ok("Сообщение отправлено на " + DestinationPrefixes.NOTIFICATIONS + "/newLog");
     }
 
 

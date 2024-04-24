@@ -3,7 +3,7 @@ package ru.nsu.server.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import ru.nsu.server.model.Group;
+import ru.nsu.server.model.study_plan.Group;
 
 import java.util.List;
 

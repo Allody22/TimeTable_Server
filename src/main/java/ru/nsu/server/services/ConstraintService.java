@@ -2,9 +2,9 @@ package ru.nsu.server.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.nsu.server.model.ConstraintsNames;
-import ru.nsu.server.model.Operations;
+import ru.nsu.server.model.constraints.ConstraintsNames;
 import ru.nsu.server.model.constraints.UniversalConstraint;
+import ru.nsu.server.model.user.Operations;
 import ru.nsu.server.payload.response.ConstraintResponse;
 import ru.nsu.server.repository.ConstraintNamesRepository;
 import ru.nsu.server.repository.OperationsRepository;
