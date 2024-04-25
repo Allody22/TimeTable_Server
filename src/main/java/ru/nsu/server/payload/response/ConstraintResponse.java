@@ -39,4 +39,7 @@ public class ConstraintResponse {
     private String teacher2;
 
     private Integer period;
+
+    private String subject;
+
 }

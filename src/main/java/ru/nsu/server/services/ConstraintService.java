@@ -47,7 +47,7 @@ public class ConstraintService {
     @Transactional
     public void saveNewUniversalConstraint(String constraintNameRu, String constraintNameEng, Integer
             group, Integer group1, Integer group2, String teacher, String teacher1, String teacher2,
-                                           Integer day, Integer period, Integer number) {
+                                           Integer day, Integer period, Integer number, String subjectName) {
         UniversalConstraint universalConstraint = new UniversalConstraint();
         universalConstraint.setDateOfCreation(new Date());
         universalConstraint.setConstraintName(constraintNameEng);
@@ -61,6 +61,7 @@ public class ConstraintService {
         universalConstraint.setDay(day);
         universalConstraint.setPeriod(period);
         universalConstraint.setNumber(number);
+        universalConstraint.setSubject(subjectName);
         universalConstraintRepository.save(universalConstraint);
 
         StringBuilder sb = new StringBuilder();
@@ -95,6 +96,10 @@ public class ConstraintService {
         if (period != null && period != -1) {
             sb.append(" номером пары: '").append(teacher1).append("',");
         }
+
+        if (subjectName != null && !subjectName.isBlank()) {
+            sb.append(" названием пары: '").append(subjectName).append("',");
+        }
         if (sb.length() > initialLength) {
             if (sb.charAt(sb.length() - 1) == ',') {
                 sb.setLength(sb.length() - 1);
@@ -127,7 +132,7 @@ public class ConstraintService {
                 constraintResponse.setTeacher1(currentConstraint.getTeacher1());
                 constraintResponse.setTeacher2(currentConstraint.getTeacher2());
                 constraintResponse.setId(currentConstraint.getId());
-
+                constraintResponse.setSubject(constraintResponse.getSubject());
                 constraintResponses.add(constraintResponse);
             }
         }

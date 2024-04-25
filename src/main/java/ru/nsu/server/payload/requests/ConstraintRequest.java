@@ -43,4 +43,7 @@ public class ConstraintRequest {
 
     @Schema(description = "Заданный временной период, который может повлиять на ограничение.", example = "1")
     private Integer period = -1; // значение по умолчанию
+
+    @Schema(description = "Название предмета, на который может повлиять на ограничение.", example = "изучение java")
+    private String subjectName = "";
 }

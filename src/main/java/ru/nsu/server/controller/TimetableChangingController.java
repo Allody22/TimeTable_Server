@@ -44,7 +44,7 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/day_and_pair_number")
     @Transactional
-    public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
+    public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) throws InterruptedException {
         boolean changeResult = timetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
         return ResponseEntity.ok(new DataResponse(changeResult));
     }
@@ -61,7 +61,7 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/room")
     @Transactional
-    public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
+    public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) throws InterruptedException {
         boolean changeResult = timetableService.changeRoom(changeRoomRequest);
         return ResponseEntity.ok(new DataResponse(changeResult));
     }

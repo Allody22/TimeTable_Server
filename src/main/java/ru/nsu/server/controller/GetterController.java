@@ -29,7 +29,7 @@ import javax.validation.constraints.NotBlank;
 @Slf4j
 @AllArgsConstructor
 @RequestMapping("/get")
-@Tag(name = "4. Getter controller", description = "Контроллер для получения константной информации. " +
+@Tag(name = "5. Getter controller", description = "Контроллер для получения константной информации. " +
         "Тут можно получить поддерживаемые ограничения, существующие номера групп, имена учителей, названия факультетов и тп.")
 public class GetterController {
 

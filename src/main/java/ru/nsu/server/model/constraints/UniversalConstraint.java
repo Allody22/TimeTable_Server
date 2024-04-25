@@ -54,4 +54,7 @@ public class UniversalConstraint {
 
     @Column(name = "number")
     private Integer number;
+
+    @Column(name = "subject")
+    private String subject;
 }

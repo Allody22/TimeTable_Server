@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -63,7 +62,7 @@ public class ConstraintController {
         constraintService.saveNewUniversalConstraint(constraintNameRu, constraintNameEng, constraintRequest.getGroup(), constraintRequest.getGroup1(),
                 constraintRequest.getGroup2(), constraintRequest.getTeacher(), constraintRequest.getTeacher1(),
                 constraintRequest.getTeacher2(), constraintRequest.getDay(), constraintRequest.getPeriod(),
-                constraintRequest.getNumber());
+                constraintRequest.getNumber(), constraintRequest.getSubjectName());
         return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
     }
 

@@ -1,6 +1,7 @@
 package ru.nsu.server.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,6 @@ import ru.nsu.server.model.config.ConfigModel;
 import ru.nsu.server.model.config.ConstraintModel;
 import ru.nsu.server.model.config.PlanItem;
 import ru.nsu.server.model.constraints.UniversalConstraint;
-import ru.nsu.server.model.current.WeekTimetable;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
 import ru.nsu.server.model.study_plan.Group;
 import ru.nsu.server.model.study_plan.Plan;
@@ -38,9 +38,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class TimetableService {
-
-    private final WeekTimeTableRepository weekTimeTableRepository;
+public class PotentialTimetableService {
 
     private final PotentialWeekTimeTableRepository potentialWeekTimeTableRepository;
 
@@ -56,10 +54,11 @@ public class TimetableService {
 
     private final UserRepository userRepository;
 
+
     @Transactional
     public boolean changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
         Long pairId = changeDayAndPairNumberRequest.getSubjectId();
-        WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
+        PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
 
         Integer newDayNumber = changeDayAndPairNumberRequest.getNewDayNumber();
@@ -71,14 +70,52 @@ public class TimetableService {
 
         foundedTimeTablePart.setDayNumber(newDayNumber);
         foundedTimeTablePart.setPairNumber(newPairNumber);
-        weekTimeTableRepository.save(foundedTimeTablePart);
+        potentialWeekTimeTableRepository.save(foundedTimeTablePart);
         return true;
+    }
+
+    @Transactional
+    public List<ConstraintModel> changeOnePair(Long pairId){
+        PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
+                .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
+
+        var allOtherPairs = potentialWeekTimeTableRepository.findAll();
+        if (allOtherPairs.isEmpty()) {
+            return null;
+        }
+
+        List<ConstraintModel> constraintModelList = new ArrayList<>();
+        for (PotentialWeekTimetable currentPair : allOtherPairs) {
+            if (Objects.equals(currentPair.getId(), foundedTimeTablePart.getId())) {
+                continue;
+            } else {
+                ConstraintModel constraint = new ConstraintModel();
+                List<Integer> groupsList = new ArrayList<>();
+                // Разбиваем строку по запятым и добавляем числа в список
+                String[] groupsArray = currentPair.getGroups().split(",");
+                for (String group : groupsArray) {
+                    groupsList.add(Integer.parseInt(group.trim()));
+                }
+                constraint.setName("exact_time");
+                constraint.setArgs(Map.of(
+                        "teacher", currentPair.getTeacher(),
+                        "subject", currentPair.getSubjectName() + "_" + currentPair.getPairType(),
+                        "day", currentPair.getDayNumber(),
+                        "period", currentPair.getPairNumber(),
+                        "room", Integer.parseInt(currentPair.getRoom()),
+                        "groups", groupsList
+                ));
+                constraintModelList.add(constraint);
+            }
+        }
+
+        return constraintModelList;
     }
 
     @Transactional
     public boolean changeRoom(ChangeRoomRequest changeRoomRequest) {
         Long pairId = changeRoomRequest.getSubjectId();
-        WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
+        PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
 
         String newRoomName = changeRoomRequest.getNewRoom();
@@ -87,14 +124,14 @@ public class TimetableService {
         }
         checkNewRoom(newRoomName, foundedTimeTablePart);
         foundedTimeTablePart.setRoom(newRoomName);
-        weekTimeTableRepository.save(foundedTimeTablePart);
+        potentialWeekTimeTableRepository.save(foundedTimeTablePart);
         return true;
     }
 
     @Transactional
     public boolean changeTeacher(ChangeTeacherRequest changeTeacherRequest) {
         Long pairId = changeTeacherRequest.getSubjectId();
-        WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
+        PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
 
         String newTeacher = changeTeacherRequest.getNewTeacherFullName();
@@ -105,14 +142,14 @@ public class TimetableService {
         }
 
         foundedTimeTablePart.setTeacher(newTeacher);
-        weekTimeTableRepository.save(foundedTimeTablePart);
+        potentialWeekTimeTableRepository.save(foundedTimeTablePart);
         return true;
     }
 
     @Transactional
     public boolean changeDayAndPairNumberAndRoom(ChangeDayAndPairNumberAndRoomRequest ChangeDayAndPairNumberAndRoomRequest) {
         Long pairId = ChangeDayAndPairNumberAndRoomRequest.getSubjectId();
-        WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
+        PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
 
         Integer newDayNumber = ChangeDayAndPairNumberAndRoomRequest.getNewDayNumber();
@@ -132,17 +169,17 @@ public class TimetableService {
         checkNewRoom(newRoomName, foundedTimeTablePart);
         checkNewDayAndPairPeriod(newDayNumber, newPairNumber, foundedTimeTablePart);
 
-        weekTimeTableRepository.save(foundedTimeTablePart);
+        potentialWeekTimeTableRepository.save(foundedTimeTablePart);
         return true;
     }
 
 
-    private void checkNewDayAndPairPeriod(Integer newDayNumber, Integer newPairNumber, WeekTimetable foundedTimeTablePart) {
+    private void checkNewDayAndPairPeriod(Integer newDayNumber, Integer newPairNumber, PotentialWeekTimetable foundedTimeTablePart) {
         if (newDayNumber == null || newPairNumber == null) {
             throw new EmptyDataException("В ограничение на изменение дня и номера пары обязательно надо передать эти параметры!");
         }
         //Если преподаватель в этот день занят и в это время, то сразу лив
-        Optional<List<WeekTimetable>> optionalListOfPairsByTeacher = weekTimeTableRepository.findByTeacherAndDayNumberAndPairNumber(foundedTimeTablePart.getTeacher(), newDayNumber, newPairNumber);
+        Optional<List<PotentialWeekTimetable>> optionalListOfPairsByTeacher = potentialWeekTimeTableRepository.findByTeacherAndDayNumberAndPairNumber(foundedTimeTablePart.getTeacher(), newDayNumber, newPairNumber);
         if (optionalListOfPairsByTeacher.isPresent()) {
             for (var currentPair : optionalListOfPairsByTeacher.get()) {
                 if (!currentPair.equals(foundedTimeTablePart)) {
@@ -151,7 +188,7 @@ public class TimetableService {
             }
         }
 
-        Optional<List<WeekTimetable>> optionalListOfPairsByRoom = weekTimeTableRepository.findByDayNumberAndPairNumberAndRoom(newDayNumber, newPairNumber, foundedTimeTablePart.getRoom());
+        Optional<List<PotentialWeekTimetable>> optionalListOfPairsByRoom = potentialWeekTimeTableRepository.findByDayNumberAndPairNumberAndRoom(newDayNumber, newPairNumber, foundedTimeTablePart.getRoom());
         //Если этот кабинет в этот день и пару занят то сразу лив
         if (optionalListOfPairsByRoom.isPresent()) {
             for (var currentPair : optionalListOfPairsByRoom.get()) {
@@ -162,7 +199,7 @@ public class TimetableService {
         }
     }
 
-    private void checkNewTeacher(String newTeacher, WeekTimetable foundedTimeTablePart) {
+    private void checkNewTeacher(String newTeacher, PotentialWeekTimetable foundedTimeTablePart) {
         if (newTeacher == null || newTeacher.isBlank()) {
             throw new EmptyDataException("В ограничение на изменение комнаты обязательно надо передать комнату!");
         }
@@ -171,7 +208,7 @@ public class TimetableService {
         }
 
         //Если у преподавателя уже
-        Optional<List<WeekTimetable>> optionalListOfPairsByTeacher = weekTimeTableRepository.findByTeacherAndDayNumberAndPairNumber(newTeacher, foundedTimeTablePart.getDayNumber(), foundedTimeTablePart.getPairNumber());
+        Optional<List<PotentialWeekTimetable>> optionalListOfPairsByTeacher = potentialWeekTimeTableRepository.findByTeacherAndDayNumberAndPairNumber(newTeacher, foundedTimeTablePart.getDayNumber(), foundedTimeTablePart.getPairNumber());
         if (optionalListOfPairsByTeacher.isPresent()) {
             for (var currentPair : optionalListOfPairsByTeacher.get()) {
                 if (!currentPair.equals(foundedTimeTablePart)) {
@@ -181,7 +218,7 @@ public class TimetableService {
         }
     }
 
-    private void checkNewRoom(String newRoomName, WeekTimetable foundedTimeTablePart) {
+    private void checkNewRoom(String newRoomName, PotentialWeekTimetable foundedTimeTablePart) {
         if (newRoomName == null || newRoomName.isBlank()) {
             throw new EmptyDataException("В ограничение на изменение комнаты обязательно надо передать комнату!");
         }
@@ -192,7 +229,7 @@ public class TimetableService {
             throw new ConflictChangesException("Данный тип пары не соответствует типу новой комнаты");
         }
 
-        Optional<List<WeekTimetable>> optionalListOfPairsByDayAndPairNumberAndRoom = weekTimeTableRepository.findByDayNumberAndPairNumberAndRoom(foundedTimeTablePart.getDayNumber(), foundedTimeTablePart.getPairNumber(), newRoomName);
+        Optional<List<PotentialWeekTimetable>> optionalListOfPairsByDayAndPairNumberAndRoom = potentialWeekTimeTableRepository.findByDayNumberAndPairNumberAndRoom(foundedTimeTablePart.getDayNumber(), foundedTimeTablePart.getPairNumber(), newRoomName);
         if (optionalListOfPairsByDayAndPairNumberAndRoom.isPresent()) {
             for (var currentPair : optionalListOfPairsByDayAndPairNumberAndRoom.get()) {
                 if (!currentPair.equals(foundedTimeTablePart)) {
@@ -202,7 +239,7 @@ public class TimetableService {
         }
     }
 
-    public ConfigModel fillConfigFileUniversal() {
+    public ConfigModel fillConfigFileUniversal(List<ConstraintModel> newConstraints) {
         ConfigModel configModel = new ConfigModel();
         List<Room> rooms = roomRepository.getAll();
         List<Group> groups = groupRepository.getAll();
@@ -239,14 +276,22 @@ public class TimetableService {
             }
         }
 
+        if (newConstraints != null && !newConstraints.isEmpty()){
+            constraintModelList.addAll(newConstraints);
+        }
         configModel.setConstraints(constraintModelList);
+        log.error("config model = " + constraintModelList);
         return configModel;
     }
 
     public static void toJson(ConfigModel configModel) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(configModel);
 
+        mapper.enable(SerializationFeature.INDENT_OUTPUT); // Добавляем эту строку для красивого форматирования JSON
+
+
+        String json = mapper.writeValueAsString(configModel);
+        log.error("json = " + json);
         String baseDir = System.getProperty("user.dir");
 
         String filePath = baseDir + "/TimeTable_Algo/src/resources/config_example.json";
@@ -255,9 +300,9 @@ public class TimetableService {
 
     }
 
-    public void saveConfigToFile() {
+    public void saveConfigToFile(List<ConstraintModel> newConstraints) {
         try {
-            ConfigModel configModel = fillConfigFileUniversal();
+            ConfigModel configModel = fillConfigFileUniversal(newConstraints);
             toJson(configModel);
         } catch (IOException e) {
             // Обработка ошибок ввода-вывода
@@ -373,21 +418,21 @@ public class TimetableService {
     @Transactional
     public void convertOptionalTimeTableToActual() {
         var potentialTimeTable = potentialWeekTimeTableRepository.findAll();
-        weekTimeTableRepository.deleteAll();
+        potentialWeekTimeTableRepository.deleteAll();
         for (var subject : potentialTimeTable) {
-            WeekTimetable weekTimetable = new WeekTimetable();
-            weekTimetable.setDayNumber(subject.getDayNumber());
-            weekTimetable.setSubjectName(subject.getSubjectName());
-            weekTimetable.setGroups(subject.getGroups());
-            weekTimetable.setTeacher(subject.getTeacher());
-            weekTimetable.setFaculty(subject.getFaculty());
-            weekTimetable.setCourse(subject.getCourse());
-            weekTimetable.setPairNumber(subject.getPairNumber());
-            weekTimetable.setRoom(subject.getRoom());
-            weekTimetable.setStartTime(subject.getStartTime());
-            weekTimetable.setEndTime(subject.getEndTime());
-            weekTimetable.setPairType(subject.getPairType());
-            weekTimeTableRepository.save(weekTimetable);
+            PotentialWeekTimetable PotentialWeekTimetable = new PotentialWeekTimetable();
+            PotentialWeekTimetable.setDayNumber(subject.getDayNumber());
+            PotentialWeekTimetable.setSubjectName(subject.getSubjectName());
+            PotentialWeekTimetable.setGroups(subject.getGroups());
+            PotentialWeekTimetable.setTeacher(subject.getTeacher());
+            PotentialWeekTimetable.setFaculty(subject.getFaculty());
+            PotentialWeekTimetable.setCourse(subject.getCourse());
+            PotentialWeekTimetable.setPairNumber(subject.getPairNumber());
+            PotentialWeekTimetable.setRoom(subject.getRoom());
+            PotentialWeekTimetable.setStartTime(subject.getStartTime());
+            PotentialWeekTimetable.setEndTime(subject.getEndTime());
+            PotentialWeekTimetable.setPairType(subject.getPairType());
+            potentialWeekTimeTableRepository.save(PotentialWeekTimetable);
         }
 //        potentialWeekTimeTableRepository.deleteAll();
         Operations operations = new Operations();
@@ -443,89 +488,5 @@ public class TimetableService {
         operations.setUserAccount("Админ");
         operations.setDescription("Сохранено новое потенциальное расписание");
         operationsRepository.save(operations);
-    }
-
-    @Transactional
-    public void saveNewActualTimeTable(List<String> newTimeTableList) {
-        weekTimeTableRepository.deleteAll();
-        for (String line : newTimeTableList) {
-            line = line.substring(2, line.length() - 2);
-            String[] mainParts = line.split("\\), \\[");
-
-            String details = mainParts[0];
-            String[] parts = details.split(", ");
-
-            String teacher = parts[0].replaceAll("[()']", "").trim();
-
-            String subjectWithType = parts[1].replaceAll("[()']", "").trim();
-            int lastIndex = subjectWithType.lastIndexOf('_');
-            String subjectName = subjectWithType.substring(0, lastIndex).replace("_", " ");
-            String subjectType = subjectWithType.substring(lastIndex + 1);
-
-            // Обработка дня и номера пары
-            int day = Integer.parseInt(parts[2].trim());
-            int pairNumber = Integer.parseInt(parts[3].trim());
-
-            // Обработка номера аудитории
-            String roomStr = parts[4].replaceAll("[()']", "").trim();
-            int room = Integer.parseInt(roomStr);
-
-            // Обработка групп
-            String groupsPart = mainParts[1].replaceAll("[\\]]", "").trim();
-            String[] groups = groupsPart.split(", ");
-            String groupStr = String.join(",", groups);
-
-            WeekTimetable weekTimetable = new WeekTimetable();
-            weekTimetable.setTeacher(teacher);
-            weekTimetable.setSubjectName(subjectName);
-            weekTimetable.setPairType(subjectType);
-            weekTimetable.setDayNumber(day);
-            weekTimetable.setPairNumber(pairNumber);
-            weekTimetable.setRoom(Integer.toString(room));
-            weekTimetable.setGroups(groupStr);
-
-            weekTimeTableRepository.save(weekTimetable);
-        }
-    }
-
-    public List<WeekTimetable> getAllTimeTable() {
-        return weekTimeTableRepository.findAll();
-    }
-
-
-    public List<WeekTimetable> getGroupTimetable(String group) {
-        return weekTimeTableRepository.getAllByExactGroup(group);
-    }
-
-    public List<WeekTimetable> getTeacherTimetable(String teacher) {
-        return weekTimeTableRepository.getAllByTeacher(teacher);
-    }
-
-    public List<WeekTimetable> getFacultyTimetable(String faculty) {
-        return weekTimeTableRepository.getAllByFaculty(faculty);
-    }
-
-    public List<WeekTimetable> getRoomTimetable(String room) {
-        return weekTimeTableRepository.getWeekTimetablesByRoom(room);
-    }
-
-    public List<PotentialWeekTimetable> getAllPotentialTimeTable() {
-        return potentialWeekTimeTableRepository.findAll();
-    }
-
-    public List<PotentialWeekTimetable> getPotentialGroupTimetable(String group) {
-        return potentialWeekTimeTableRepository.getAllByExactGroup(group);
-    }
-
-    public List<PotentialWeekTimetable> getPotentialTeacherTimetable(String teacher) {
-        return potentialWeekTimeTableRepository.getAllByTeacher(teacher);
-    }
-
-    public List<PotentialWeekTimetable> getPotentialFacultyTimetable(String faculty) {
-        return potentialWeekTimeTableRepository.getAllByFacultyContaining(faculty);
-    }
-
-    public List<PotentialWeekTimetable> getPotentialRoomTimetable(String room) {
-        return potentialWeekTimeTableRepository.getPotentialWeekTimetablesByRoom(room);
     }
 }

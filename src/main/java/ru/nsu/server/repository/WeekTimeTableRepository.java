@@ -1,16 +1,22 @@
 package ru.nsu.server.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.nsu.server.model.current.WeekTimetable;
 
+import javax.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface WeekTimeTableRepository extends JpaRepository<WeekTimetable, Long> {
+
+    //TODO как вызвать блокировку?
+    @Lock(LockModeType.PESSIMISTIC_READ)
+    Optional<WeekTimetable> findById(Long id);
 
     Optional<WeekTimetable> getWeekTimetableByRoom(String roomNumber);
 
@@ -22,9 +28,6 @@ public interface WeekTimeTableRepository extends JpaRepository<WeekTimetable, Lo
 
     Optional<List<WeekTimetable>> findByDayNumberAndPairNumberAndRoom(int dayNumber, int pairNumber, String roomNumber);
 
-//    boolean existsByTeacherAndDayNumberAndPairNumber(String teacher, int dayNumber, int pairNumber);
-
-//    boolean existsByDayNumberAndPairNumberAndRoom(int dayNumber, int pairNumber, String roomNumber);
 
     List<WeekTimetable> getAllByGroupsContaining(String groupNumber);
 
