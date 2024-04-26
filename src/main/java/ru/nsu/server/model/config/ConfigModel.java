@@ -1,6 +1,7 @@
 package ru.nsu.server.model.config;
 
 import lombok.Data;
+import ru.nsu.server.model.dto.ConstraintModel;
 
 import java.util.List;
 import java.util.Map;

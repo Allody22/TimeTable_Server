@@ -27,7 +27,7 @@ public class User {
     @Column(name = "creation_time")
     private Date dateOfCreation;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "email")
     private String email;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -37,7 +37,7 @@ public class User {
     @ToString.Exclude
     private Set<Role> roles = new HashSet<>();
 
-    @Column(name = "phone", unique = true)
+    @Column(name = "phone")
     private String phone;
 
     @Column(name = "full_name", unique = true)

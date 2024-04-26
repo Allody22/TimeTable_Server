@@ -26,7 +26,7 @@ import javax.validation.Valid;
 @Slf4j
 @AllArgsConstructor
 @RequestMapping("/timetable/actual/change")
-@Tag(name = "6. Timetable Changing controller", description = "Контроллер для попыток внесения изменений в актуальное расписание " +
+@Tag(name = "06. Timetable Changing controller", description = "Контроллер для попыток внесения изменений в актуальное расписание " +
         "без вызова алгоритма и без учёта ограничений (constraints).")
 public class TimetableChangingController {
 

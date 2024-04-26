@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
 @Data
@@ -14,8 +13,8 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 public class RegistrationRequest {
 
-    @NotBlank
-    @Email
+//    @NotBlank
+//    @Email
     @Schema(description = "Почта человека, который собирается регистрироваться.", example = "admin2@gmail.com", required = true)
     private String email;
 

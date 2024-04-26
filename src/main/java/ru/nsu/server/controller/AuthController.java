@@ -35,7 +35,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/api")
-@Tag(name = "0. Auth controller", description = "Контроллер авторизации, в котором человек может получить свой jwt и refresh токен.")
+@Tag(name = "00. Auth controller", description = "Контроллер авторизации, в котором человек может получить свой jwt и refresh токен.")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;

@@ -1,4 +1,4 @@
-package ru.nsu.server.model.config;
+package ru.nsu.server.model.dto;
 
 import lombok.Data;
 

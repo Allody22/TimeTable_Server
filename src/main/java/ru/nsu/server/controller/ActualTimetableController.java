@@ -26,7 +26,7 @@ import javax.validation.constraints.NotBlank;
 @Slf4j
 @AllArgsConstructor
 @RequestMapping("/timetable/actual")
-@Tag(name = "1. Actual Timetable controller", description = "Получение информации о последнем рабочем " +
+@Tag(name = "01. Actual Timetable controller", description = "Получение информации о последнем рабочем " +
         "и активированном расписании по отдельным категориям (группы, факультеты, преподаватели...)." +
         "Тут находится ПОСЛЕДНЕЕ активированное РАБОЧЕЕ потенциальное расписание.")
 public class ActualTimetableController {

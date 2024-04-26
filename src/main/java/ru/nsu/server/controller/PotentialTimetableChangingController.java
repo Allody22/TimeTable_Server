@@ -1,7 +1,6 @@
 package ru.nsu.server.controller;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,23 +15,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import ru.nsu.server.model.config.ConfigModel;
-import ru.nsu.server.model.config.ConstraintModel;
-import ru.nsu.server.model.user.Operations;
+import ru.nsu.server.model.dto.ConstraintModel;
+import ru.nsu.server.model.dto.ConstraintModelForVariants;
 import ru.nsu.server.payload.requests.*;
-import ru.nsu.server.payload.response.DataResponse;
-import ru.nsu.server.payload.response.FailureResponse;
-import ru.nsu.server.payload.response.MessageResponse;
+import ru.nsu.server.payload.response.*;
 import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.services.PotentialTimetableService;
 
 import javax.validation.Valid;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -45,7 +37,7 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequestMapping("/timetable/potential/change")
-@Tag(name = "7. Potential Timetable Changing controller", description = "Контроллер для попыток внесения изменений в потенциальное расписание " +
+@Tag(name = "07. Potential Timetable Changing controller", description = "Контроллер для попыток внесения изменений в потенциальное расписание " +
         "с дополнительной проверкой от алгоритма.")
 public class PotentialTimetableChangingController {
 
@@ -75,40 +67,48 @@ public class PotentialTimetableChangingController {
         this.operationsRepository = operationsRepository;
     }
 
+
+
     @Operation(
-            summary = "Попытка поставить ОДНУ пару в любой другой день в другой период.",
+            summary = "Получение всех вариантов, куда можно переставить пару в потенциальном расписании.",
             description = """
-                    Получается айди элемента из актуального расписание, новые желаемые данные, 
-                    а сервер проверяет возможность этого изменения и делает его, если возможно.
-                    !Важно - не вызывается алгоритм!""",
+                    Получается айди элемента из потенциального расписание, а затем перебираются все другие\s
+                    дни недели + время пары + кабинеты, в которые можно поставить эту пару.
+                    На выход идёт размер массива с вариантами и сами варианты.""",
             tags = {"actual timetable", "change"})
     @ApiResponses({
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = VariantsWithVariantsSize.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
-    @PostMapping("/save_all_pairs_except_one")
+    @PostMapping("/pair_variants")
     @Transactional
-    public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid OnePairRequest onePairRequest) {
-        List<ConstraintModel> constraintModelList = potentialTimetableService.changeOnePair(onePairRequest.getSubjectId());
-
-        CompletableFuture<Pair<String, Boolean>> future = executeScriptDBAsync(constraintModelList);
-        try {
-            Pair<String, Boolean> result = future.get(5, TimeUnit.SECONDS);
-            if (result.getRight()) {
-//                simpMessagingTemplate.convertAndSend("Новое потенциальное расписание успешно составлено");
-                return ResponseEntity.ok(new MessageResponse("Потенциальное расписание успешно создано"));
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
+    public ResponseEntity<?> findAllVariantsForPair(@RequestBody @Valid OnePairRequest onePairRequest) {
+        Long pairId = onePairRequest.getSubjectId();
+        List<ConstraintModelForVariants> constraintModelsForVariants = potentialTimetableService.findAllNewVariantsForPair(pairId);
+        List<PotentialVariants> potentialVariantsForPair = new ArrayList<>();
+        for (ConstraintModelForVariants currentConstraintModel : constraintModelsForVariants) {
+            CompletableFuture<Boolean> future = executeScriptDBAsync(currentConstraintModel.getConstraintModels());
+            try {
+                boolean result = future.get(5, TimeUnit.SECONDS);
+                if (result) {
+                    potentialVariantsForPair.add(new PotentialVariants(currentConstraintModel.getPairId(), currentConstraintModel.getDayNumber(), currentConstraintModel.getSubjectName(),
+                            currentConstraintModel.getGroups(), currentConstraintModel.getTeacher(), currentConstraintModel.getFaculty(), currentConstraintModel.getCourse(),
+                            currentConstraintModel.getRoom(), currentConstraintModel.getPairNumber(), currentConstraintModel.getPairType()));
+                } else {
+                    continue;
+                }
+            } catch (TimeoutException e) {
+                return ResponseEntity.ok(new MessageResponse("Расписание еще составляется, пожалуйста, подождите"));
+            } catch (InterruptedException | ExecutionException e) {
+                Thread.currentThread().interrupt();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
             }
-        } catch (TimeoutException e) {
-            return ResponseEntity.ok(new MessageResponse("Расписание еще составляется, пожалуйста, подождите"));
-        } catch (InterruptedException | ExecutionException e) {
-            Thread.currentThread().interrupt();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
         }
+        potentialTimetableService.saveConfigToFile(null);
+        return ResponseEntity.ok(new VariantsWithVariantsSize(potentialVariantsForPair.size(), potentialVariantsForPair));
     }
 
     @Async("taskExecutor")
-    public CompletableFuture<Pair<String, Boolean>> executeScriptDBAsync(List<ConstraintModel> constraintModelList) {
+    public CompletableFuture<Boolean> executeScriptDBAsync(List<ConstraintModel> constraintModelList) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return executeTimeTableScript(false, constraintModelList);
@@ -119,40 +119,8 @@ public class PotentialTimetableChangingController {
     }
 
 
-    @Async("taskExecutor")
-    public CompletableFuture<Pair<String, Boolean>> executeScriptTestAsync() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return executeTimeTableScript(true, null);
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
 
-
-    public void saveConfigToFile(ConfigModel configModel) {
-        try {
-            toJson(configModel);
-        } catch (IOException e) {
-            // Обработка ошибок ввода-вывода
-            log.error("error with saving file to config: {}", e.getMessage());
-        }
-    }
-
-    public static void toJson(ConfigModel configModel) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(configModel);
-
-        String baseDir = System.getProperty("user.dir");
-
-        String filePath = baseDir + "/TimeTable_Algo/src/resources/config_example.json";
-
-        Files.writeString(Paths.get(filePath), json, Charset.forName("windows-1251"));
-
-    }
-
-    public Pair<String, Boolean> executeTimeTableScript(boolean isTest, List<ConstraintModel> newConstraints) throws IOException, InterruptedException {
+    public Boolean executeTimeTableScript(boolean isTest, List<ConstraintModel> newConstraints) throws IOException, InterruptedException {
         String baseDir = System.getProperty("user.dir");
         String jsonFilePath = baseDir + javaTestResources;
         String inputURL = pythoConfigUrl;
@@ -165,12 +133,8 @@ public class PotentialTimetableChangingController {
         String outputFilePath = baseDir + outputFileURL;
 
 
-        File outputFile = new File(outputFilePath);
-        if (!outputFile.exists()) {
-            boolean fileCreated = outputFile.createNewFile();
-            if (!fileCreated) {
-                throw new IOException("Could not create new file at: " + outputFilePath);
-            }
+        try (FileWriter fileWriter = new FileWriter(outputFilePath, false)) { // false - не добавлять, а переписывать
+            fileWriter.write(""); // Очищаем файл
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
@@ -187,58 +151,28 @@ public class PotentialTimetableChangingController {
         String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251")).lines().collect(Collectors.joining("\n"));
         int exitCode = process.waitFor();
         if (exitCode != 0) {
-            log.error("output 1: " + output);
+            log.error("output in script execution: " + output);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
                 writer.write("FAILED");
             } catch (IOException e) {
                 log.error("Error writing to file: {}", outputFilePath, e);
             }
-            throw new IOException("Script exited with error code: " + exitCode + " Output: " + output);
+            return false;
+//            throw new IOException("Script exited with error code: " + exitCode + " Output: " + output);
         }
 
-        return parseAlgoResponse(outputFilePath, output);
-    }
-
-    private Pair<String, Boolean> parseAlgoResponse(String outputFilePath, String algoOutput) {
-        log.error("output: " + algoOutput);
-        String firstLine = algoOutput.split("\n")[0];
-        String returnOutput = algoOutput.substring(algoOutput.indexOf('\n') + 1);
-
+        String firstLine = output.split("\n")[0];
+        log.info("Result = {}", firstLine);
         if ("FAILED".equals(firstLine)) {
-            log.info("Script execution failed.");
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
-                writer.write("FAILED\n");
-                writer.write(parseFailure(returnOutput).toString());
-            } catch (IOException e) {
-                log.error("Error writing to file: {}", outputFilePath, e);
-            }
-            Operations operations = new Operations();
-            operations.setDateOfCreation(new Date());
-            operations.setUserAccount("Админ");
-            operations.setDescription("Неудачная попытка создать расписание из заранее заготовленного конфига");
-            operationsRepository.save(operations);
-
-            return Pair.of(returnOutput, false);
+            return false;
         } else if ("SUCCESSFULLY".equals(firstLine)) {
-            log.info("Script executed successfully.");
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
-                writer.write("SUCCESSFULLY");
-            } catch (IOException e) {
-                log.error("Error writing to file: {}", outputFilePath, e);
-            }
-            List<String> list = List.of(returnOutput.split("\n"));
-            potentialTimetableService.saveNewPotentialTimeTable(list);
-            return Pair.of(returnOutput, true);
+            return true;
         } else {
             log.info("Script output does not start with 'FAILED' or 'SUCCESSFULLY'.");
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
-                writer.write("");
-            } catch (IOException e) {
-                log.error("Error writing to file: {}", outputFilePath, e);
-            }
         }
-        return Pair.of(returnOutput, true);
+        return true;
     }
+
 
     public List<FailureResponse> parseFailure(String input) {
         String[] lines = input.split("\n");
@@ -341,7 +275,8 @@ public class PotentialTimetableChangingController {
     @PostMapping("/day_and_pair_number_and_room")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
-        boolean changeResult = potentialTimetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest);
+        boolean changeResult = potentialTimetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest.getSubjectId(), changeDayAndPairNumberRequest.getNewDayNumber(),
+                changeDayAndPairNumberRequest.getNewPairNumber(), changeDayAndPairNumberRequest.getNewRoom());
         return ResponseEntity.ok(new DataResponse(changeResult));
     }
 
@@ -361,4 +296,36 @@ public class PotentialTimetableChangingController {
         boolean changeResult = potentialTimetableService.changeTeacher(changeTeacherRequest);
         return ResponseEntity.ok(new DataResponse(changeResult));
     }
+
+    //    @Operation(
+//            summary = "Попытка поставить ОДНУ пару в любой другой день в другой период.",
+//            description = """
+//                    Получается айди элемента из актуального расписание, новые желаемые данные,
+//                    а сервер проверяет возможность этого изменения и делает его, если возможно.
+//                    !Важно - не вызывается алгоритм!""",
+//            tags = {"actual timetable", "change"})
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
+//            @ApiResponse(responseCode = "500", content = @Content)})
+//    @PostMapping("/save_all_pairs_except_one")
+//    @Transactional
+//    public ResponseEntity<?> saveAllPairsExceptOne(@RequestBody @Valid OnePairRequest onePairRequest) {
+//        List<ConstraintModel> constraintModelList = potentialTimetableService.changeOnePair(onePairRequest.getSubjectId());
+//
+//        CompletableFuture<Pair<String, Boolean>> future = executeScriptDBAsync(constraintModelList, false);
+//        try {
+//            Pair<String, Boolean> result = future.get(5, TimeUnit.SECONDS);
+//            if (result.getRight()) {
+////                simpMessagingTemplate.convertAndSend("Новое потенциальное расписание успешно составлено");
+//                return ResponseEntity.ok(new MessageResponse("Потенциальное расписание успешно создано"));
+//            } else {
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Ошибка при создании расписания: " + result.getLeft()));
+//            }
+//        } catch (TimeoutException e) {
+//            return ResponseEntity.ok(new MessageResponse("Расписание еще составляется, пожалуйста, подождите"));
+//        } catch (InterruptedException | ExecutionException e) {
+//            Thread.currentThread().interrupt();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
+//        }
+//    }
 }

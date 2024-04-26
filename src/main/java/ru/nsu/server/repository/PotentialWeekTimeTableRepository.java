@@ -26,4 +26,6 @@ public interface PotentialWeekTimeTableRepository extends JpaRepository<Potentia
     List<PotentialWeekTimetable> getAllByTeacher(String teacher);
 
     List<PotentialWeekTimetable> getAllByFacultyContaining(String faculty);
+
+    Optional<List<PotentialWeekTimetable>> findByTeacherAndDayNumberAndPairNumberAndRoom(String teacher, int dayNumber, int pairNumber, String room);
 }

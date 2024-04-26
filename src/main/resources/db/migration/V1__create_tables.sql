@@ -21,8 +21,8 @@ CREATE TABLE users
 (
     id            SERIAL PRIMARY KEY,
     creation_time TIMESTAMP WITH TIME ZONE,
-    email         VARCHAR(255) UNIQUE NOT NULL,
-    phone         VARCHAR(255) UNIQUE,
+    email         VARCHAR(255),
+    phone         VARCHAR(255),
     full_name     VARCHAR(255) UNIQUE,
     password      VARCHAR(255)        NOT NULL
 );

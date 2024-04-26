@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequestMapping("/timetable/potential")
-@Tag(name = "4. Potential TimeTable controller", description = "Контроллер для составления потенциального расписания. " +
+@Tag(name = "04. Potential TimeTable controller", description = "Контроллер для составления потенциального расписания. " +
         "В нём человек может попробовать сгенерировать расписание, получить информацию о текущем статусе, " +
         "активировать последнее успешно сгенерированное потенциальное расписание..")
 public class PotentialTimetableController {

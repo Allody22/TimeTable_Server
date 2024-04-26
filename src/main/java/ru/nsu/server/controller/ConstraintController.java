@@ -26,7 +26,7 @@ import javax.validation.constraints.NotBlank;
 @Slf4j
 @RequestMapping("/api/constraints")
 @AllArgsConstructor
-@Tag(name = "3. Constraint controller", description = "Контроллер ограничений. В нём человек может удалять, создавать и просматривать ограничения.")
+@Tag(name = "03. Constraint controller", description = "Контроллер ограничений. В нём человек может удалять, создавать и просматривать ограничения.")
 public class ConstraintController {
 
     private final ConstraintService constraintService;

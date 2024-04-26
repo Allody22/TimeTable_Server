@@ -26,7 +26,7 @@ import javax.validation.constraints.NotBlank;
 @RestController
 @Slf4j
 @RequestMapping("/api/admin")
-@Tag(name = "2. Admin controller", description = "Админский контроллер, в котором человек может создавать " +
+@Tag(name = "02. Admin controller", description = "Админский контроллер, в котором человек может создавать " +
         "и удалять группы, учителя, комнаты, учебный план и тп.")
 public class AdminController {
 
@@ -228,8 +228,10 @@ public class AdminController {
     public ResponseEntity<?> registerNewStudent(@Valid @RequestBody RegistrationRequest registrationRequest) {
         String newUserEmail = registrationRequest.getEmail();
 
-        if (userService.existByEmailCheck(newUserEmail)) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая почта уже зарегистрирована."));
+        if (newUserEmail != null && !newUserEmail.isEmpty()) {
+            if (userService.existByEmailCheck(newUserEmail)) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая почта уже зарегистрирована."));
+            }
         }
         String description = userService.saveNewUser(newUserEmail, registrationRequest.getFullName(),
                 registrationRequest.getPhone());
@@ -252,8 +254,10 @@ public class AdminController {
     public ResponseEntity<?> registerNewTeacher(@Valid @RequestBody RegistrationRequest registrationRequest) {
         String newUserEmail = registrationRequest.getEmail();
 
-        if (userService.existByEmailCheck(newUserEmail)) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая почта уже зарегистрирована."));
+        if (newUserEmail != null && !newUserEmail.isEmpty()) {
+            if (userService.existByEmailCheck(newUserEmail)) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая почта уже зарегистрирована."));
+            }
         }
         String description = userService.saveNewTeacher(newUserEmail, registrationRequest.getFullName(),
                 registrationRequest.getPhone());
@@ -279,8 +283,10 @@ public class AdminController {
     public ResponseEntity<?> registerNewAdmin(@Valid @RequestBody RegistrationRequest registrationRequest) {
         String newUserEmail = registrationRequest.getEmail();
 
-        if (userService.existByEmailCheck(newUserEmail)) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая почта уже зарегистрирована."));
+        if (newUserEmail != null && !newUserEmail.isEmpty()) {
+            if (userService.existByEmailCheck(newUserEmail)) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая почта уже зарегистрирована."));
+            }
         }
         String description = userService.saveNewAdmin(newUserEmail, registrationRequest.getFullName(),
                 registrationRequest.getPhone());
