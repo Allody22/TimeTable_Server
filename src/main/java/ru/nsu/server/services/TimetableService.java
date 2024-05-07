@@ -57,14 +57,19 @@ public class TimetableService {
     private final UserRepository userRepository;
 
     @Transactional
-    public boolean changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
+    public String changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
         Long pairId = changeDayAndPairNumberRequest.getSubjectId();
         WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
 
+        int oldDayNumber = foundedTimeTablePart.getDayNumber();
+        int oldPairNumber = foundedTimeTablePart.getPairNumber();
+        String subjectName = foundedTimeTablePart.getSubjectName();
+        String room = foundedTimeTablePart.getRoom();
+
         Integer newDayNumber = changeDayAndPairNumberRequest.getNewDayNumber();
         Integer newPairNumber = changeDayAndPairNumberRequest.getNewPairNumber();
-        if (newDayNumber == foundedTimeTablePart.getDayNumber() && newPairNumber == foundedTimeTablePart.getPairNumber()) {
+        if (newDayNumber == oldDayNumber && newPairNumber == oldPairNumber) {
             throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
         }
         checkNewDayAndPairPeriod(newDayNumber, newPairNumber, foundedTimeTablePart);
@@ -72,45 +77,52 @@ public class TimetableService {
         foundedTimeTablePart.setDayNumber(newDayNumber);
         foundedTimeTablePart.setPairNumber(newPairNumber);
         weekTimeTableRepository.save(foundedTimeTablePart);
-        return true;
+
+
+        return String.format("Перенос пары %s в кабинете %s: с %s, %s на %s, %s.",
+                subjectName, room,
+                getDayName(oldDayNumber), getPairTime(oldPairNumber),
+                getDayName(newDayNumber), getPairTime(newPairNumber));
     }
 
     @Transactional
-    public boolean changeRoom(ChangeRoomRequest changeRoomRequest) {
+    public String changeRoom(ChangeRoomRequest changeRoomRequest) {
         Long pairId = changeRoomRequest.getSubjectId();
         WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
 
         String newRoomName = changeRoomRequest.getNewRoom();
-        if (Objects.equals(newRoomName, foundedTimeTablePart.getRoom())) {
+        String oldRoom = foundedTimeTablePart.getRoom();
+        if (Objects.equals(newRoomName, oldRoom)) {
             throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
         }
         checkNewRoom(newRoomName, foundedTimeTablePart);
         foundedTimeTablePart.setRoom(newRoomName);
         weekTimeTableRepository.save(foundedTimeTablePart);
-        return true;
+        return String.format("Изменение кабинета пары %s в %s %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayName(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldRoom, newRoomName);
     }
 
     @Transactional
-    public boolean changeTeacher(ChangeTeacherRequest changeTeacherRequest) {
+    public String changeTeacher(ChangeTeacherRequest changeTeacherRequest) {
         Long pairId = changeTeacherRequest.getSubjectId();
         WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
 
         String newTeacher = changeTeacherRequest.getNewTeacherFullName();
+        String oldTeacher = foundedTimeTablePart.getTeacher();
         checkNewTeacher(newTeacher, foundedTimeTablePart);
 
-        if (Objects.equals(newTeacher, foundedTimeTablePart.getTeacher())) {
+        if (Objects.equals(newTeacher, oldTeacher)) {
             throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
         }
 
         foundedTimeTablePart.setTeacher(newTeacher);
         weekTimeTableRepository.save(foundedTimeTablePart);
-        return true;
+        return String.format("Изменение преподавателя пары %s в %s, %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayName(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldTeacher, newTeacher);
     }
 
     @Transactional
-    public boolean changeDayAndPairNumberAndRoom(ChangeDayAndPairNumberAndRoomRequest ChangeDayAndPairNumberAndRoomRequest) {
+    public String changeDayAndPairNumberAndRoom(ChangeDayAndPairNumberAndRoomRequest ChangeDayAndPairNumberAndRoomRequest) {
         Long pairId = ChangeDayAndPairNumberAndRoomRequest.getSubjectId();
         WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
@@ -119,8 +131,13 @@ public class TimetableService {
         Integer newPairNumber = ChangeDayAndPairNumberAndRoomRequest.getNewPairNumber();
         String newRoomName = ChangeDayAndPairNumberAndRoomRequest.getNewRoom();
 
-        if (newDayNumber == foundedTimeTablePart.getDayNumber() && newPairNumber == foundedTimeTablePart.getPairNumber()
-                && Objects.equals(newRoomName, foundedTimeTablePart.getRoom())) {
+
+        int oldDayNumber = foundedTimeTablePart.getDayNumber();
+        int oldPairNumber = foundedTimeTablePart.getPairNumber();
+        String oldRoom = foundedTimeTablePart.getRoom();
+
+        if (newDayNumber == oldDayNumber && newPairNumber == oldPairNumber
+                && Objects.equals(newRoomName, oldRoom)) {
             throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
         }
         //Время устанавливаем все данные в эту сущность, а если что-то пойдёт не так, то изменения просто откатятся
@@ -133,7 +150,11 @@ public class TimetableService {
         checkNewDayAndPairPeriod(newDayNumber, newPairNumber, foundedTimeTablePart);
 
         weekTimeTableRepository.save(foundedTimeTablePart);
-        return true;
+
+        return String.format("Изменение дня и кабинета пары %s преподавателя %s: с %s, %s, %s на %s, %s, %s.",
+                foundedTimeTablePart.getSubjectName(), foundedTimeTablePart.getTeacher(),
+                getDayName(oldDayNumber), getPairTime(oldPairNumber), oldRoom,
+                getDayName(newDayNumber), getPairTime(newPairNumber), newRoomName);
     }
 
 
@@ -202,6 +223,30 @@ public class TimetableService {
         }
     }
 
+    private String getDayName(int dayNumber) {
+        return switch (dayNumber) {
+            case 1 -> "понедельник";
+            case 2 -> "вторник";
+            case 3 -> "среда";
+            case 4 -> "четверг";
+            case 5 -> "пятница";
+            case 6 -> "суббота";
+            case 7 -> "воскресенье";
+            default -> "неизвестный день";
+        };
+    }
+
+    private String getPairTime(int pairNumber) {
+        String[] startTimes = {"09:00", "10:50", "12:40", "14:30", "16:20", "18:10", "20:00"};
+        String[] endTimes = {"10:35", "12:25", "14:15", "16:05", "17:55", "19:45", "21:35"};
+
+        if (pairNumber < 1 || pairNumber > 7) {
+            return "неизвестное время";
+        }
+
+        return startTimes[pairNumber - 1] + " - " + endTimes[pairNumber - 1];
+    }
+
     public ConfigModel fillConfigFileUniversal() {
         ConfigModel configModel = new ConfigModel();
         List<Room> rooms = roomRepository.getAll();
@@ -233,7 +278,7 @@ public class TimetableService {
                         "period", currentConstraint.getPeriod(),
                         "teacher_1", currentConstraint.getTeacher1(),
                         "teacher_2", currentConstraint.getTeacher2(),
-                        "subject",currentConstraint.getSubject()
+                        "subject", currentConstraint.getSubject()
                 ));
                 constraintModelList.add(constraint);
             }

@@ -24,7 +24,7 @@ CREATE TABLE users
     email         VARCHAR(255),
     phone         VARCHAR(255),
     full_name     VARCHAR(255) UNIQUE,
-    password      VARCHAR(255)        NOT NULL
+    password      VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE user_roles

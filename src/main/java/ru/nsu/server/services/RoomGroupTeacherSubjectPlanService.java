@@ -125,7 +125,7 @@ public class RoomGroupTeacherSubjectPlanService {
 
     @Transactional
     public String saveNewPlan(String teacher, String subjectName, String subjectType,
-                            String groups, int timesInAWeek) {
+                              String groups, int timesInAWeek) {
         Plan plan = new Plan();
         plan.setGroups(groups);
         plan.setTimesInAWeek(timesInAWeek);
@@ -190,7 +190,7 @@ public class RoomGroupTeacherSubjectPlanService {
         Operations operations = new Operations();
         operations.setDateOfCreation(new Date());
         operations.setUserAccount("Админ");
-        String description = "Удалён предмет '" + name + "'" ;
+        String description = "Удалён предмет '" + name + "'";
         operations.setDescription(description);
         return description;
     }

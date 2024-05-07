@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +46,9 @@ public class PotentialTimetableChangingController {
 
     private final OperationsRepository operationsRepository;
 
+    private SimpMessagingTemplate simpMessagingTemplate;
+
+
     @Value("${timetable.url.python.executable}")
     private String pythonExecutableURL;
 
@@ -62,11 +66,11 @@ public class PotentialTimetableChangingController {
 
     @Autowired
     public PotentialTimetableChangingController(PotentialTimetableService potentialTimetableService,
-                                                OperationsRepository operationsRepository) {
+                                                OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate) {
         this.potentialTimetableService = potentialTimetableService;
         this.operationsRepository = operationsRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
-
 
 
     @Operation(
@@ -107,18 +111,78 @@ public class PotentialTimetableChangingController {
         return ResponseEntity.ok(new VariantsWithVariantsSize(potentialVariantsForPair.size(), potentialVariantsForPair));
     }
 
-    @Async("taskExecutor")
-    public CompletableFuture<Boolean> executeScriptDBAsync(List<ConstraintModel> constraintModelList) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return executeTimeTableScript(false, constraintModelList);
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
+    @Operation(
+            summary = "Попытка поставить пару в другой день в другой период.",
+            description = """
+                    Получается айди элемента из актуального расписание, новые желаемые данные, 
+                    а сервер проверяет возможность этого изменения и делает его, если возможно.
+                    !Важно - не вызывается алгоритм!""",
+            tags = {"actual timetable", "change"})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @PostMapping("/day_and_pair_number")
+    @Transactional
+    public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
+        var description = potentialTimetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
+        simpMessagingTemplate.convertAndSend(description);
+        return ResponseEntity.ok(new DataResponse(true));
     }
 
+    @Operation(
+            summary = "Попытка поставить пару в другой кабинет.",
+            description = """
+                    Получается айди элемента из актуального расписание, новые желаемый кабинет,\s
+                    а сервер проверяет возможность этого изменения и делает его, если возможно.
+                    !Важно - не вызывается алгоритм!""",
+            tags = {"actual timetable", "change"})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @PostMapping("/room")
+    @Transactional
+    public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
+        String description = potentialTimetableService.changeRoom(changeRoomRequest);
+        simpMessagingTemplate.convertAndSend(description);
+        return ResponseEntity.ok(new DataResponse(true));
+    }
 
+    @Operation(
+            summary = "Попытка поставить пару в другой день в другой период и в другую комнату.",
+            description = """
+                    Получается айди элемента из актуального расписание, новые желаемые данные,\s
+                    а сервер проверяет возможность этого изменения и делает его, если возможно.
+                    !Важно - не вызывается алгоритм!""",
+            tags = {"actual timetable", "change"})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @PostMapping("/day_and_pair_number_and_room")
+    @Transactional
+    public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
+        String description = potentialTimetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest.getSubjectId(), changeDayAndPairNumberRequest.getNewDayNumber(),
+                changeDayAndPairNumberRequest.getNewPairNumber(), changeDayAndPairNumberRequest.getNewRoom());
+        simpMessagingTemplate.convertAndSend(description);
+        return ResponseEntity.ok(new DataResponse(true));
+    }
+
+    @Operation(
+            summary = "Попытка передать пару другому преподавателю.",
+            description = """
+                    Получается айди элемента из актуального расписание, ФИО нового преподавателя, которые будет проводить пары, 
+                    а сервер проверяет возможность этого изменения и делает его, если возможно.
+                    !Важно - не вызывается алгоритм!""",
+            tags = {"actual timetable", "change"})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @PostMapping("/teacher")
+    @Transactional
+    public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {
+        String description = potentialTimetableService.changeTeacher(changeTeacherRequest);
+        simpMessagingTemplate.convertAndSend(description);
+        return ResponseEntity.ok(new DataResponse(true));
+    }
 
     public Boolean executeTimeTableScript(boolean isTest, List<ConstraintModel> newConstraints) throws IOException, InterruptedException {
         String baseDir = System.getProperty("user.dir");
@@ -158,7 +222,6 @@ public class PotentialTimetableChangingController {
                 log.error("Error writing to file: {}", outputFilePath, e);
             }
             return false;
-//            throw new IOException("Script exited with error code: " + exitCode + " Output: " + output);
         }
 
         String firstLine = output.split("\n")[0];
@@ -173,6 +236,16 @@ public class PotentialTimetableChangingController {
         return true;
     }
 
+    @Async("taskExecutor")
+    public CompletableFuture<Boolean> executeScriptDBAsync(List<ConstraintModel> constraintModelList) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return executeTimeTableScript(false, constraintModelList);
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
     public List<FailureResponse> parseFailure(String input) {
         String[] lines = input.split("\n");
@@ -228,74 +301,6 @@ public class PotentialTimetableChangingController {
         }
     }
 
-    @Operation(
-            summary = "Попытка поставить пару в другой день в другой период.",
-            description = """
-                    Получается айди элемента из актуального расписание, новые желаемые данные, 
-                    а сервер проверяет возможность этого изменения и делает его, если возможно.
-                    !Важно - не вызывается алгоритм!""",
-            tags = {"actual timetable", "change"})
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
-            @ApiResponse(responseCode = "500", content = @Content)})
-    @PostMapping("/day_and_pair_number")
-    @Transactional
-    public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) throws InterruptedException {
-        boolean changeResult = potentialTimetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
-        return ResponseEntity.ok(new DataResponse(changeResult));
-    }
-
-    @Operation(
-            summary = "Попытка поставить пару в другой кабинет.",
-            description = """
-                    Получается айди элемента из актуального расписание, новые желаемый кабинет,\s
-                    а сервер проверяет возможность этого изменения и делает его, если возможно.
-                    !Важно - не вызывается алгоритм!""",
-            tags = {"actual timetable", "change"})
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
-            @ApiResponse(responseCode = "500", content = @Content)})
-    @PostMapping("/room")
-    @Transactional
-    public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) throws InterruptedException {
-        boolean changeResult = potentialTimetableService.changeRoom(changeRoomRequest);
-        return ResponseEntity.ok(new DataResponse(changeResult));
-    }
-
-    @Operation(
-            summary = "Попытка поставить пару в другой день в другой период и в другую комнату.",
-            description = """
-                    Получается айди элемента из актуального расписание, новые желаемые данные, 
-                    а сервер проверяет возможность этого изменения и делает его, если возможно.
-                    !Важно - не вызывается алгоритм!""",
-            tags = {"actual timetable", "change"})
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
-            @ApiResponse(responseCode = "500", content = @Content)})
-    @PostMapping("/day_and_pair_number_and_room")
-    @Transactional
-    public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
-        boolean changeResult = potentialTimetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest.getSubjectId(), changeDayAndPairNumberRequest.getNewDayNumber(),
-                changeDayAndPairNumberRequest.getNewPairNumber(), changeDayAndPairNumberRequest.getNewRoom());
-        return ResponseEntity.ok(new DataResponse(changeResult));
-    }
-
-    @Operation(
-            summary = "Попытка передать пару другому преподавателю.",
-            description = """
-                    Получается айди элемента из актуального расписание, ФИО нового преподавателя, которые будет проводить пары, 
-                    а сервер проверяет возможность этого изменения и делает его, если возможно.
-                    !Важно - не вызывается алгоритм!""",
-            tags = {"actual timetable", "change"})
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
-            @ApiResponse(responseCode = "500", content = @Content)})
-    @PostMapping("/teacher")
-    @Transactional
-    public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {
-        boolean changeResult = potentialTimetableService.changeTeacher(changeTeacherRequest);
-        return ResponseEntity.ok(new DataResponse(changeResult));
-    }
 
     //    @Operation(
 //            summary = "Попытка поставить ОДНУ пару в любой другой день в другой период.",

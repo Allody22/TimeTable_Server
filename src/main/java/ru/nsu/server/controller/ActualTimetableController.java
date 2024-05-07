@@ -55,7 +55,7 @@ public class ActualTimetableController {
             summary = "Получение актуального расписания для определённой группы",
             description = """
                     Из базы данных достаётся вся сущность расписания из репозитория, фильтруясь по определённой группе.""",
-            tags = {"actual timetable", "get","group"})
+            tags = {"actual timetable", "get", "group"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = WeekTimetable[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Передали группу которой не существует", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
@@ -63,7 +63,7 @@ public class ActualTimetableController {
     @GetMapping("/group/{group}")
     @Transactional
     public ResponseEntity<?> getGroupTimetable(@Parameter(description = "Номер группы для которой мы ищем расписание", example = "21215") @PathVariable("group") @Valid @NotBlank String group) {
-        if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)){
+        if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)) {
             return ResponseEntity.badRequest().body((new MessageResponse("Ошибка! Такой группы не существует.")));
         }
         return ResponseEntity.ok(timetableService.getGroupTimetable(group));
@@ -73,7 +73,7 @@ public class ActualTimetableController {
             summary = "Получение актуального расписания для определённого учителя.",
             description = """
                     Из базы данных достаётся вся сущность расписания из репозитория, фильтруясь по имени учителя.""",
-            tags = {"actual timetable", "get","teacher"})
+            tags = {"actual timetable", "get", "teacher"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = WeekTimetable[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Передали учителя которого не существует", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
@@ -91,7 +91,7 @@ public class ActualTimetableController {
             summary = "Получение актуального расписания для определённой комнаты.",
             description = """
                     Из базы данных достаётся вся сущность расписания из репозитория, фильтруясь по номера комнаты.""",
-            tags = {"actual timetable", "get","room"})
+            tags = {"actual timetable", "get", "room"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = WeekTimetable[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Передали комнату, которой не существует", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
@@ -109,7 +109,7 @@ public class ActualTimetableController {
             summary = "Получение актуального расписания для определённого факультета.",
             description = """
                     Из базы данных достаётся вся сущность расписания из репозитория, фильтруясь по названию факультета.""",
-            tags = {"actual timetable", "get","faculty"})
+            tags = {"actual timetable", "get", "faculty"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = WeekTimetable[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})

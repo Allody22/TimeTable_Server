@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.payload.requests.ChangeDayAndPairNumberAndRoomRequest;
@@ -32,6 +33,8 @@ public class TimetableChangingController {
 
     private final TimetableService timetableService;
 
+    private SimpMessagingTemplate simpMessagingTemplate;
+
     @Operation(
             summary = "Попытка поставить пару в другой день в другой период.",
             description = """
@@ -44,9 +47,10 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/day_and_pair_number")
     @Transactional
-    public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) throws InterruptedException {
-        boolean changeResult = timetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
-        return ResponseEntity.ok(new DataResponse(changeResult));
+    public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
+        String description = timetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
+        simpMessagingTemplate.convertAndSend(description);
+        return ResponseEntity.ok(new DataResponse(true));
     }
 
     @Operation(
@@ -61,9 +65,10 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/room")
     @Transactional
-    public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) throws InterruptedException {
-        boolean changeResult = timetableService.changeRoom(changeRoomRequest);
-        return ResponseEntity.ok(new DataResponse(changeResult));
+    public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
+        String description = timetableService.changeRoom(changeRoomRequest);
+        simpMessagingTemplate.convertAndSend(description);
+        return ResponseEntity.ok(new DataResponse(true));
     }
 
     @Operation(
@@ -79,8 +84,9 @@ public class TimetableChangingController {
     @PostMapping("/day_and_pair_number_and_room")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
-        boolean changeResult = timetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest);
-        return ResponseEntity.ok(new DataResponse(changeResult));
+        String description = timetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest);
+        simpMessagingTemplate.convertAndSend(description);
+        return ResponseEntity.ok(new DataResponse(true));
     }
 
     @Operation(
@@ -96,7 +102,8 @@ public class TimetableChangingController {
     @PostMapping("/teacher")
     @Transactional
     public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {
-        boolean changeResult = timetableService.changeTeacher(changeTeacherRequest);
-        return ResponseEntity.ok(new DataResponse(changeResult));
+        String description = timetableService.changeTeacher(changeTeacherRequest);
+        simpMessagingTemplate.convertAndSend(description);
+        return ResponseEntity.ok(new DataResponse(true));
     }
 }

@@ -185,29 +185,39 @@ public class PotentialTimetableService {
     }
 
 
-
     @Transactional
-    public boolean changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
+    public String changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
         Long pairId = changeDayAndPairNumberRequest.getSubjectId();
         PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
 
+        // Сохраняем старые значения
+        int oldDayNumber = foundedTimeTablePart.getDayNumber();
+        int oldPairNumber = foundedTimeTablePart.getPairNumber();
+        String subjectName = foundedTimeTablePart.getSubjectName();
+        String room = foundedTimeTablePart.getRoom();
+
         Integer newDayNumber = changeDayAndPairNumberRequest.getNewDayNumber();
         Integer newPairNumber = changeDayAndPairNumberRequest.getNewPairNumber();
-        if (newDayNumber == foundedTimeTablePart.getDayNumber() && newPairNumber == foundedTimeTablePart.getPairNumber()) {
+        if (newDayNumber == oldDayNumber && newPairNumber == oldPairNumber) {
             throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
         }
+
         checkNewDayAndPairPeriod(newDayNumber, newPairNumber, foundedTimeTablePart);
 
         foundedTimeTablePart.setDayNumber(newDayNumber);
         foundedTimeTablePart.setPairNumber(newPairNumber);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
-        return true;
+
+
+        return String.format("Перенос пары %s в кабинете %s: с %s, %s на %s, %s.",
+                subjectName, room,
+                getDayName(oldDayNumber), getPairTime(oldPairNumber),
+                getDayName(newDayNumber), getPairTime(newPairNumber));
     }
 
-
     @Transactional
-    public boolean changeRoom(ChangeRoomRequest changeRoomRequest) {
+    public String changeRoom(ChangeRoomRequest changeRoomRequest) {
         Long pairId = changeRoomRequest.getSubjectId();
         PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
@@ -217,50 +227,56 @@ public class PotentialTimetableService {
             throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
         }
         checkNewRoom(newRoomName, foundedTimeTablePart);
+        String oldRoom = foundedTimeTablePart.getRoom();
         foundedTimeTablePart.setRoom(newRoomName);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
-        return true;
+
+        return String.format("Изменение кабинета пары %s в %s %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayName(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldRoom, newRoomName);
     }
 
     @Transactional
-    public boolean changeTeacher(ChangeTeacherRequest changeTeacherRequest) {
+    public String changeTeacher(ChangeTeacherRequest changeTeacherRequest) {
         Long pairId = changeTeacherRequest.getSubjectId();
         PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
 
         String newTeacher = changeTeacherRequest.getNewTeacherFullName();
+        String oldTeacher = foundedTimeTablePart.getTeacher();
         checkNewTeacher(newTeacher, foundedTimeTablePart);
-
-        if (Objects.equals(newTeacher, foundedTimeTablePart.getTeacher())) {
+        if (Objects.equals(newTeacher, oldTeacher)) {
             throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
         }
 
         foundedTimeTablePart.setTeacher(newTeacher);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
-        return true;
+        return String.format("Изменение преподавателя пары %s в %s, %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayName(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldTeacher, newTeacher);
     }
 
-
     @Transactional
-    public boolean changeDayAndPairNumberAndRoom(Long subjectId, Integer newDayNumber, Integer newPairNumber, String newRoomName) {
+    public String changeDayAndPairNumberAndRoom(Long subjectId, Integer newDayNumber, Integer newPairNumber, String newRoomName) {
         PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(subjectId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + subjectId));
 
-        if (newDayNumber == foundedTimeTablePart.getDayNumber() && newPairNumber == foundedTimeTablePart.getPairNumber()
-                && Objects.equals(newRoomName, foundedTimeTablePart.getRoom())) {
+        int oldDayNumber = foundedTimeTablePart.getDayNumber();
+        int oldPairNumber = foundedTimeTablePart.getPairNumber();
+        String oldRoom = foundedTimeTablePart.getRoom();
+
+        if (newDayNumber == oldDayNumber && newPairNumber == oldPairNumber && Objects.equals(newRoomName, oldRoom)) {
             throw new ConflictChangesException("При внесении изменений необходимо передать в запрос какие-то новые данные");
         }
-        //Время устанавливаем все данные в эту сущность, а если что-то пойдёт не так, то изменения просто откатятся
-        foundedTimeTablePart.setDayNumber(newDayNumber);
-        foundedTimeTablePart.setPairNumber(newPairNumber);
-        foundedTimeTablePart.setRoom(newRoomName);
 
-        //Сначала проверяем может ли быть существовать такое изменение по комнате, а потом по номеру дня и периоду
         checkNewRoom(newRoomName, foundedTimeTablePart);
         checkNewDayAndPairPeriod(newDayNumber, newPairNumber, foundedTimeTablePart);
 
+        foundedTimeTablePart.setDayNumber(newDayNumber);
+        foundedTimeTablePart.setPairNumber(newPairNumber);
+        foundedTimeTablePart.setRoom(newRoomName);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
-        return true;
+
+        return String.format("Изменение дня и кабинета пары %s преподавателя %s: с %s, %s, %s на %s, %s, %s.",
+                foundedTimeTablePart.getSubjectName(), foundedTimeTablePart.getTeacher(),
+                getDayName(oldDayNumber), getPairTime(oldPairNumber), oldRoom,
+                getDayName(newDayNumber), getPairTime(newPairNumber), newRoomName);
     }
 
 
@@ -444,6 +460,30 @@ public class PotentialTimetableService {
         }
 
         return planItems;
+    }
+
+    private String getDayName(int dayNumber) {
+        return switch (dayNumber) {
+            case 1 -> "понедельник";
+            case 2 -> "вторник";
+            case 3 -> "среда";
+            case 4 -> "четверг";
+            case 5 -> "пятница";
+            case 6 -> "суббота";
+            case 7 -> "воскресенье";
+            default -> "неизвестный день";
+        };
+    }
+
+    private String getPairTime(int pairNumber) {
+        String[] startTimes = {"09:00", "10:50", "12:40", "14:30", "16:20", "18:10", "20:00"};
+        String[] endTimes = {"10:35", "12:25", "14:15", "16:05", "17:55", "19:45", "21:35"};
+
+        if (pairNumber < 1 || pairNumber > 7) {
+            return "неизвестное время";
+        }
+
+        return startTimes[pairNumber - 1] + " - " + endTimes[pairNumber - 1];
     }
 
     public String convertFailureToJSON(String input) {

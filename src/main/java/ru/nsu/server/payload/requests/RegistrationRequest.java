@@ -13,7 +13,7 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 public class RegistrationRequest {
 
-//    @NotBlank
+    //    @NotBlank
 //    @Email
     @Schema(description = "Почта человека, который собирается регистрироваться.", example = "admin2@gmail.com", required = true)
     private String email;

@@ -93,7 +93,7 @@ public class PotentialTimetableController {
     @Transactional
     public ResponseEntity<?> makePotentialActual() {
         timetableService.convertOptionalTimeTableToActual();
-        simpMessagingTemplate.convertAndSend("Теперь потенциальное расписание, полученное последний раз с помощью генерации алгоритма стало актуальным!");
+        simpMessagingTemplate.convertAndSend("Теперь потенциальное расписание стало актуальным!");
         return ResponseEntity.ok(new MessageResponse("Теперь потенциальное расписание, полученное последний раз с помощью генерации алгоритма стало актуальным!"));
     }
 
@@ -116,7 +116,7 @@ public class PotentialTimetableController {
             summary = "Получение потенциального расписания для определённой группы",
             description = """
                     Из базы данных достаётся вся сущность потенциального расписания из репозитория, фильтруясь по определённой группе.""",
-            tags = {"potential timetable", "get","group"})
+            tags = {"potential timetable", "get", "group"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = WeekTimetable[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Передали группу которой не существует", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
@@ -134,7 +134,7 @@ public class PotentialTimetableController {
             summary = "Получение потенциального расписания для определённого учителя.",
             description = """
                     Из базы данных достаётся вся сущность потенциального расписания из репозитория, фильтруясь по имени учителя.""",
-            tags = {"potential timetable", "get","teacher"})
+            tags = {"potential timetable", "get", "teacher"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = WeekTimetable[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Передали учителя которого не существует", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
@@ -152,7 +152,7 @@ public class PotentialTimetableController {
             summary = "Получение потенциального расписания для определённой комнаты.",
             description = """
                     Из базы данных достаётся вся сущность потенциального расписания из репозитория, фильтруясь по номера комнаты.""",
-            tags = {"potential timetable", "get","room"})
+            tags = {"potential timetable", "get", "room"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = WeekTimetable[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Передали комнату, которой не существует", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
@@ -170,7 +170,7 @@ public class PotentialTimetableController {
             summary = "Получение потенциального расписания для определённого факультета.",
             description = """
                     Из базы данных достаётся вся сущность потенциального расписания из репозитория, фильтруясь по названию факультета.""",
-            tags = {"potential timetable", "get","faculty"})
+            tags = {"potential timetable", "get", "faculty"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = WeekTimetable[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
@@ -188,7 +188,7 @@ public class PotentialTimetableController {
                     Возможен вызов сразу нескольких составление подряд с помощью типа Future.
                     Если скрипт не может создать расписание из-за невозможности соответствия расписания условия или из-за другой ошибки,\s
                     то это расписание нигде не сохранится, а статус последней попытки создать расписания перейдёт в FAILED""",
-            tags = {"potential timetable", "creation","async"})
+            tags = {"potential timetable", "creation", "async"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
@@ -302,7 +302,7 @@ public class PotentialTimetableController {
                     Возможен вызов сразу нескольких составление подряд с помощью типа Future.
                     Если скрипт не может создать расписание из-за невозможности соответствия расписания условия или из-за другой ошибки,\s
                     то это расписание нигде не сохранится, а статус последней попытки создать расписания перейдёт в FAILED""",
-            tags = {"potential timetable", "creation","test"})
+            tags = {"potential timetable", "creation", "test"})
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
