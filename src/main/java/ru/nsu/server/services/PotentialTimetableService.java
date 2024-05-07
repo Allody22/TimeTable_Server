@@ -210,8 +210,8 @@ public class PotentialTimetableService {
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
 
 
-        return String.format("Перенос пары %s в кабинете %s: с %s, %s на %s, %s.",
-                subjectName, room,
+        return String.format("Перенос пары %s преподавателя %s в кабинете %s: с %s, %s на %s, %s.",
+                subjectName, foundedTimeTablePart.getTeacher(), room,
                 getDayName(oldDayNumber), getPairTime(oldPairNumber),
                 getDayName(newDayNumber), getPairTime(newPairNumber));
     }
@@ -273,7 +273,7 @@ public class PotentialTimetableService {
         foundedTimeTablePart.setRoom(newRoomName);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
 
-        return String.format("Изменение дня и кабинета пары %s преподавателя %s: с %s, %s, %s на %s, %s, %s.",
+        return String.format("Изменение дня, времени и кабинета пары %s преподавателя %s: с %s, %s, %s на %s, %s, %s.",
                 foundedTimeTablePart.getSubjectName(), foundedTimeTablePart.getTeacher(),
                 getDayName(oldDayNumber), getPairTime(oldPairNumber), oldRoom,
                 getDayName(newDayNumber), getPairTime(newPairNumber), newRoomName);
