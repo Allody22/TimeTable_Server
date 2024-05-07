@@ -210,10 +210,10 @@ public class PotentialTimetableService {
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
 
 
-        return String.format("Перенос пары %s преподавателя %s в кабинете %s: с %s, %s на %s, %s.",
+        return String.format("Перенос пары %s преподавателя %s в кабинете %s: %s, %s на %s, %s.",
                 subjectName, foundedTimeTablePart.getTeacher(), room,
-                getDayName(oldDayNumber), getPairTime(oldPairNumber),
-                getDayName(newDayNumber), getPairTime(newPairNumber));
+                getDayNameFromChange(oldDayNumber), getPairTime(oldPairNumber),
+                getDayNameToChange(newDayNumber), getPairTime(newPairNumber));
     }
 
     @Transactional
@@ -231,7 +231,7 @@ public class PotentialTimetableService {
         foundedTimeTablePart.setRoom(newRoomName);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
 
-        return String.format("Изменение кабинета пары %s в %s %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayName(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldRoom, newRoomName);
+        return String.format("Изменение кабинета пары %s в %s %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldRoom, newRoomName);
     }
 
     @Transactional
@@ -249,7 +249,7 @@ public class PotentialTimetableService {
 
         foundedTimeTablePart.setTeacher(newTeacher);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
-        return String.format("Изменение преподавателя пары %s в %s, %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayName(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldTeacher, newTeacher);
+        return String.format("Изменение преподавателя пары %s в %s, %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldTeacher, newTeacher);
     }
 
     @Transactional
@@ -273,10 +273,10 @@ public class PotentialTimetableService {
         foundedTimeTablePart.setRoom(newRoomName);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
 
-        return String.format("Изменение дня, времени и кабинета пары %s преподавателя %s: с %s, %s, %s на %s, %s, %s.",
+        return String.format("Изменение дня, времени и кабинета пары %s преподавателя %s: %s, %s, %s на %s, %s, %s.",
                 foundedTimeTablePart.getSubjectName(), foundedTimeTablePart.getTeacher(),
-                getDayName(oldDayNumber), getPairTime(oldPairNumber), oldRoom,
-                getDayName(newDayNumber), getPairTime(newPairNumber), newRoomName);
+                getDayNameFromChange(oldDayNumber), getPairTime(oldPairNumber), oldRoom,
+                getDayNameToChange(newDayNumber), getPairTime(newPairNumber), newRoomName);
     }
 
 
@@ -471,6 +471,32 @@ public class PotentialTimetableService {
             case 5 -> "пятница";
             case 6 -> "суббота";
             case 7 -> "воскресенье";
+            default -> "неизвестный день";
+        };
+    }
+
+    private String getDayNameToChange(int dayNumber) {
+        return switch (dayNumber) {
+            case 1 -> "понедельник";
+            case 2 -> "вторник";
+            case 3 -> "среду";
+            case 4 -> "четверг";
+            case 5 -> "пятницу";
+            case 6 -> "субботу";
+            case 7 -> "воскресенье";
+            default -> "неизвестный день";
+        };
+    }
+
+    private String getDayNameFromChange(int dayNumber) {
+        return switch (dayNumber) {
+            case 1 -> "с понедельника";
+            case 2 -> "со вторника";
+            case 3 -> "со среды";
+            case 4 -> "с четверга";
+            case 5 -> "с пятницы";
+            case 6 -> "с субботы";
+            case 7 -> "с воскресенья";
             default -> "неизвестный день";
         };
     }
