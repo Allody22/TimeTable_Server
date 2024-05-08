@@ -22,6 +22,7 @@ import ru.nsu.server.payload.requests.*;
 import ru.nsu.server.payload.response.*;
 import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.services.PotentialTimetableService;
+import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
 import java.io.*;
@@ -45,6 +46,7 @@ public class PotentialTimetableChangingController {
     private final PotentialTimetableService potentialTimetableService;
 
     private final OperationsRepository operationsRepository;
+    private final TimetableService timetableService;
 
     private SimpMessagingTemplate simpMessagingTemplate;
 
@@ -66,15 +68,16 @@ public class PotentialTimetableChangingController {
 
     @Autowired
     public PotentialTimetableChangingController(PotentialTimetableService potentialTimetableService,
-                                                OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate) {
+                                                OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate, TimetableService timetableService) {
         this.potentialTimetableService = potentialTimetableService;
         this.operationsRepository = operationsRepository;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.timetableService = timetableService;
     }
 
 
     @Operation(
-            summary = "Получение всех вариантов, куда можно переставить пару в потенциальном расписании.",
+            summary = "СТАРЫЙ",
             description = """
                     Получается айди элемента из потенциального расписание, а затем перебираются все другие\s
                     дни недели + время пары + кабинеты, в которые можно поставить эту пару.
@@ -83,7 +86,7 @@ public class PotentialTimetableChangingController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = VariantsWithVariantsSize.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
-    @PostMapping("/pair_variants")
+    @PostMapping("/pair_variants_old")
     @Transactional
     public ResponseEntity<?> findAllVariantsForPair(@RequestBody @Valid OnePairRequest onePairRequest) {
         Long pairId = onePairRequest.getSubjectId();
@@ -112,6 +115,49 @@ public class PotentialTimetableChangingController {
     }
 
     @Operation(
+            summary = "Получение всех вариантов, куда можно переставить пару в потенциальном расписании.",
+            description = """
+                    Получается айди элемента из потенциального расписание, а затем перебираются все другие\s
+                    дни недели + время пары + кабинеты, в которые можно поставить эту пару.
+                    На выход идёт размер массива с вариантами и сами варианты.""",
+            tags = {"actual timetable", "change"})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = VariantsWithVariantsSize.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @PostMapping("/pair_variants")
+    @Transactional
+    public ResponseEntity<?> findAllVariantsForPairAsync(@RequestBody @Valid OnePairRequest onePairRequest) {
+        Long pairId = onePairRequest.getSubjectId();
+        List<ConstraintModelForVariants> constraintModelsForVariants = potentialTimetableService.findAllNewVariantsForPair(pairId);
+        List<PotentialVariants> potentialVariantsForPair = new ArrayList<>();
+        List<CompletableFuture<Boolean>> futures = new ArrayList<>();
+
+        for (ConstraintModelForVariants currentConstraintModel : constraintModelsForVariants) {
+            CompletableFuture<Boolean> future = executeScriptDBAsync(currentConstraintModel.getConstraintModels());
+            futures.add(future.thenApply(result -> {
+                if (result) {
+                    potentialVariantsForPair.add(new PotentialVariants(currentConstraintModel.getPairId(), currentConstraintModel.getDayNumber(), currentConstraintModel.getSubjectName(),
+                            currentConstraintModel.getGroups(), currentConstraintModel.getTeacher(), currentConstraintModel.getFaculty(), currentConstraintModel.getCourse(),
+                            currentConstraintModel.getRoom(), currentConstraintModel.getPairNumber(), currentConstraintModel.getPairType()));
+                }
+                return result;
+            }));
+        }
+
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        try {
+            allFutures.get();
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
+        }
+
+        potentialTimetableService.saveConfigToFile(null);
+        return ResponseEntity.ok(new VariantsWithVariantsSize(potentialVariantsForPair.size(), potentialVariantsForPair));
+    }
+
+
+    @Operation(
             summary = "Попытка поставить пару в другой день в другой период.",
             description = """
                     Получается айди элемента из актуального расписание, новые желаемые данные, 
@@ -126,6 +172,8 @@ public class PotentialTimetableChangingController {
     public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
         var description = potentialTimetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
         simpMessagingTemplate.convertAndSend(description);
+
+//        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -144,6 +192,8 @@ public class PotentialTimetableChangingController {
     public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
         String description = potentialTimetableService.changeRoom(changeRoomRequest);
         simpMessagingTemplate.convertAndSend(description);
+
+//        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -163,6 +213,8 @@ public class PotentialTimetableChangingController {
         String description = potentialTimetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest.getSubjectId(), changeDayAndPairNumberRequest.getNewDayNumber(),
                 changeDayAndPairNumberRequest.getNewPairNumber(), changeDayAndPairNumberRequest.getNewRoom());
         simpMessagingTemplate.convertAndSend(description);
+
+//        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -181,6 +233,8 @@ public class PotentialTimetableChangingController {
     public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {
         String description = potentialTimetableService.changeTeacher(changeTeacherRequest);
         simpMessagingTemplate.convertAndSend(description);
+
+//        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 

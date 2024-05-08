@@ -50,6 +50,8 @@ public class TimetableChangingController {
     public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
         String description = timetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
         simpMessagingTemplate.convertAndSend(description);
+
+//        simpMessagingTemplate.convertAndSend(timetableService.getAllTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -68,6 +70,8 @@ public class TimetableChangingController {
     public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
         String description = timetableService.changeRoom(changeRoomRequest);
         simpMessagingTemplate.convertAndSend(description);
+
+//        simpMessagingTemplate.convertAndSend(timetableService.getAllTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -86,6 +90,8 @@ public class TimetableChangingController {
     public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
         String description = timetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest);
         simpMessagingTemplate.convertAndSend(description);
+
+//        simpMessagingTemplate.convertAndSend(timetableService.getAllTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -104,6 +110,8 @@ public class TimetableChangingController {
     public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {
         String description = timetableService.changeTeacher(changeTeacherRequest);
         simpMessagingTemplate.convertAndSend(description);
+
+//        simpMessagingTemplate.convertAndSend(timetableService.getAllTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 }
