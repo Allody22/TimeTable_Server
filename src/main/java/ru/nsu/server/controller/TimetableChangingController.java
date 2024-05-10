@@ -18,6 +18,7 @@ import ru.nsu.server.payload.requests.ChangeDayAndPairNumberRequest;
 import ru.nsu.server.payload.requests.ChangeRoomRequest;
 import ru.nsu.server.payload.requests.ChangeTeacherRequest;
 import ru.nsu.server.payload.response.DataResponse;
+import ru.nsu.server.repository.logs.ActualTimetableLogsRepository;
 import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
@@ -32,6 +33,7 @@ import javax.validation.Valid;
 public class TimetableChangingController {
 
     private final TimetableService timetableService;
+    private final ActualTimetableLogsRepository actualTimetableLogsRepository;
 
     private SimpMessagingTemplate simpMessagingTemplate;
 

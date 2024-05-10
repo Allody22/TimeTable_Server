@@ -22,6 +22,7 @@ import ru.nsu.server.model.user.Operations;
 import ru.nsu.server.payload.response.FailureResponse;
 import ru.nsu.server.payload.response.MessageResponse;
 import ru.nsu.server.repository.OperationsRepository;
+import ru.nsu.server.repository.logs.PotentialTimetableLogsRepository;
 import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
 import ru.nsu.server.services.TimetableService;
 
@@ -53,6 +54,8 @@ public class PotentialTimetableController {
 
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
+    private final PotentialTimetableLogsRepository potentialTimetableLogsRepository;
+
     @Value("${timetable.url.python.executable}")
     private String pythonExecutableURL;
 
@@ -73,11 +76,12 @@ public class PotentialTimetableController {
 
     @Autowired
     public PotentialTimetableController(TimetableService timetableService, RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService,
-                                        OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate) {
+                                        OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate, PotentialTimetableLogsRepository potentialTimetableLogsRepository) {
         this.timetableService = timetableService;
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.operationsRepository = operationsRepository;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.potentialTimetableLogsRepository = potentialTimetableLogsRepository;
     }
 
     @Operation(
@@ -95,6 +99,17 @@ public class PotentialTimetableController {
         timetableService.convertOptionalTimeTableToActual();
         simpMessagingTemplate.convertAndSend("Теперь потенциальное расписание стало актуальным!");
         return ResponseEntity.ok(new MessageResponse("Теперь потенциальное расписание, полученное последний раз с помощью генерации алгоритма стало актуальным!"));
+    }
+
+    @Operation(
+            summary = "Получение всех операций изменения, которые когда-либо происходили с потенциальном расписанием.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = Operations[].class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @GetMapping("/logs")
+    @Transactional
+    public ResponseEntity<?> getAllOperations() {
+        return ResponseEntity.ok(potentialTimetableLogsRepository.findAllPotentialDto());
     }
 
     @Operation(

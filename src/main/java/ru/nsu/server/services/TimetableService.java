@@ -13,6 +13,7 @@ import ru.nsu.server.model.config.PlanItem;
 import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.current.WeekTimetable;
 import ru.nsu.server.model.dto.ConstraintModel;
+import ru.nsu.server.model.operations.ActualTimetableLogs;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
 import ru.nsu.server.model.study_plan.Group;
 import ru.nsu.server.model.study_plan.Plan;
@@ -25,6 +26,7 @@ import ru.nsu.server.payload.requests.ChangeTeacherRequest;
 import ru.nsu.server.payload.response.FailureResponse;
 import ru.nsu.server.repository.*;
 import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
+import ru.nsu.server.repository.logs.ActualTimetableLogsRepository;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -55,6 +57,7 @@ public class TimetableService {
     private final OperationsRepository operationsRepository;
 
     private final UserRepository userRepository;
+    private final ActualTimetableLogsRepository actualTimetableLogsRepository;
 
     @Transactional
     public String changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
@@ -78,10 +81,30 @@ public class TimetableService {
         foundedTimeTablePart.setPairNumber(newPairNumber);
         weekTimeTableRepository.save(foundedTimeTablePart);
 
-        return String.format("Перенос пары %s преподавателя %s в кабинете %s: %s, %s на %s, %s.",
+
+        String description = String.format("Перенос пары %s преподавателя %s в кабинете %s: %s, %s на %s, %s.",
                 subjectName, foundedTimeTablePart.getTeacher(), room,
                 getDayNameFromChange(oldDayNumber), getPairTime(oldPairNumber),
                 getDayNameToChange(newDayNumber), getPairTime(newPairNumber));
+
+        ActualTimetableLogs currentLog = new ActualTimetableLogs();
+        currentLog.setDescription(description);
+        currentLog.setDateOfCreation(new Date());
+        currentLog.setUserAccount("admin");
+        currentLog.setOperationName("/day_and_pair_number");
+        currentLog.setSubjectId(pairId);
+        currentLog.setNewDayNumber(newDayNumber);
+        currentLog.setNewPairNumber(newPairNumber);
+        currentLog.setNewRoom(foundedTimeTablePart.getRoom());
+        currentLog.setNewTeacherFullName(foundedTimeTablePart.getTeacher());
+
+        currentLog.setOldPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setOldRoom(foundedTimeTablePart.getRoom());
+        currentLog.setOldDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setOldTeacherFullName(foundedTimeTablePart.getTeacher());
+        actualTimetableLogsRepository.save(currentLog);
+
+        return description;
     }
 
     @Transactional
@@ -98,7 +121,27 @@ public class TimetableService {
         checkNewRoom(newRoomName, foundedTimeTablePart);
         foundedTimeTablePart.setRoom(newRoomName);
         weekTimeTableRepository.save(foundedTimeTablePart);
-        return String.format("Изменение кабинета пары %s в %s %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldRoom, newRoomName);
+
+        String description = String.format("Изменение кабинета пары %s в %s %s: с %s на %s.", foundedTimeTablePart.getSubjectName(),
+                getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldRoom, newRoomName);
+
+        ActualTimetableLogs currentLog = new ActualTimetableLogs();
+        currentLog.setDescription(description);
+        currentLog.setDateOfCreation(new Date());
+        currentLog.setUserAccount("admin");
+        currentLog.setOperationName("/room");
+        currentLog.setSubjectId(pairId);
+        currentLog.setNewDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setNewPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setNewRoom(newRoomName);
+        currentLog.setNewTeacherFullName(foundedTimeTablePart.getTeacher());
+
+        currentLog.setOldPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setOldRoom(foundedTimeTablePart.getRoom());
+        currentLog.setOldDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setOldTeacherFullName(foundedTimeTablePart.getTeacher());
+        actualTimetableLogsRepository.save(currentLog);
+        return description;
     }
 
     @Transactional
@@ -117,7 +160,26 @@ public class TimetableService {
 
         foundedTimeTablePart.setTeacher(newTeacher);
         weekTimeTableRepository.save(foundedTimeTablePart);
-        return String.format("Изменение преподавателя пары %s в %s, %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldTeacher, newTeacher);
+
+        String description = String.format("Изменение преподавателя пары %s в %s, %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldTeacher, newTeacher);
+
+        ActualTimetableLogs currentLog = new ActualTimetableLogs();
+        currentLog.setDescription(description);
+        currentLog.setDateOfCreation(new Date());
+        currentLog.setUserAccount("admin");
+        currentLog.setOperationName("/teacher");
+        currentLog.setSubjectId(pairId);
+        currentLog.setNewDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setNewPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setNewRoom(foundedTimeTablePart.getRoom());
+        currentLog.setNewTeacherFullName(newTeacher);
+
+        currentLog.setOldPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setOldRoom(foundedTimeTablePart.getRoom());
+        currentLog.setOldDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setOldTeacherFullName(foundedTimeTablePart.getTeacher());
+        actualTimetableLogsRepository.save(currentLog);
+        return description;
     }
 
     @Transactional
@@ -150,10 +212,31 @@ public class TimetableService {
 
         weekTimeTableRepository.save(foundedTimeTablePart);
 
-        return String.format("Изменение дня, времени и кабинета пары %s преподавателя %s: %s, %s, %s на %s, %s, %s.",
+        String description = String.format("Изменение дня, времени и кабинета пары %s преподавателя %s: %s, %s, %s на %s, %s, %s.",
                 foundedTimeTablePart.getSubjectName(), foundedTimeTablePart.getTeacher(),
                 getDayNameFromChange(oldDayNumber), getPairTime(oldPairNumber), oldRoom,
                 getDayNameToChange(newDayNumber), getPairTime(newPairNumber), newRoomName);
+
+        ActualTimetableLogs currentLog = new ActualTimetableLogs();
+        currentLog.setDescription(description);
+        currentLog.setDateOfCreation(new Date());
+        currentLog.setUserAccount("admin");
+        currentLog.setOperationName("/day_and_pair_number_and_room");
+
+        currentLog.setSubjectId(pairId);
+        currentLog.setNewDayNumber(newDayNumber);
+        currentLog.setNewPairNumber(newPairNumber);
+        currentLog.setNewRoom(newRoomName);
+        currentLog.setNewTeacherFullName(foundedTimeTablePart.getTeacher());
+
+
+        currentLog.setOldPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setOldRoom(foundedTimeTablePart.getRoom());
+        currentLog.setOldDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setOldTeacherFullName(foundedTimeTablePart.getTeacher());
+        actualTimetableLogsRepository.save(currentLog);
+        return description;
+
     }
 
 

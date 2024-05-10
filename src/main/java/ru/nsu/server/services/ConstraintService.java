@@ -6,8 +6,8 @@ import ru.nsu.server.model.constraints.ConstraintsNames;
 import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.user.Operations;
 import ru.nsu.server.payload.response.ConstraintResponse;
-import ru.nsu.server.repository.ConstraintNamesRepository;
 import ru.nsu.server.repository.OperationsRepository;
+import ru.nsu.server.repository.constraints.ConstraintNamesRepository;
 import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
 
 import java.util.ArrayList;

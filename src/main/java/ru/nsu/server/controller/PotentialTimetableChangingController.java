@@ -18,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.model.dto.ConstraintModel;
 import ru.nsu.server.model.dto.ConstraintModelForVariants;
+import ru.nsu.server.model.operations.PotentialTimetableLogs;
 import ru.nsu.server.payload.requests.*;
 import ru.nsu.server.payload.response.*;
 import ru.nsu.server.repository.OperationsRepository;
+import ru.nsu.server.repository.logs.PotentialTimetableLogsRepository;
 import ru.nsu.server.services.PotentialTimetableService;
 import ru.nsu.server.services.TimetableService;
 
@@ -46,7 +48,9 @@ public class PotentialTimetableChangingController {
     private final PotentialTimetableService potentialTimetableService;
 
     private final OperationsRepository operationsRepository;
+
     private final TimetableService timetableService;
+    private final PotentialTimetableLogsRepository potentialTimetableLogsRepository;
 
     private SimpMessagingTemplate simpMessagingTemplate;
 
@@ -68,11 +72,12 @@ public class PotentialTimetableChangingController {
 
     @Autowired
     public PotentialTimetableChangingController(PotentialTimetableService potentialTimetableService,
-                                                OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate, TimetableService timetableService) {
+                                                OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate, TimetableService timetableService, PotentialTimetableLogsRepository potentialTimetableLogsRepository) {
         this.potentialTimetableService = potentialTimetableService;
         this.operationsRepository = operationsRepository;
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.timetableService = timetableService;
+        this.potentialTimetableLogsRepository = potentialTimetableLogsRepository;
     }
 
 
@@ -92,6 +97,7 @@ public class PotentialTimetableChangingController {
         Long pairId = onePairRequest.getSubjectId();
         List<ConstraintModelForVariants> constraintModelsForVariants = potentialTimetableService.findAllNewVariantsForPair(pairId);
         List<PotentialVariants> potentialVariantsForPair = new ArrayList<>();
+        log.info("Start find All Variants For Pair old with {} variants.", constraintModelsForVariants.size());
         for (ConstraintModelForVariants currentConstraintModel : constraintModelsForVariants) {
             CompletableFuture<Boolean> future = executeScriptDBAsync(currentConstraintModel.getConstraintModels());
             try {
@@ -126,31 +132,43 @@ public class PotentialTimetableChangingController {
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/pair_variants")
     @Transactional
-    public ResponseEntity<?> findAllVariantsForPairAsync(@RequestBody @Valid OnePairRequest onePairRequest) {
+    public ResponseEntity<?> findAllVariantsForPairFast(@RequestBody @Valid OnePairRequest onePairRequest) {
         Long pairId = onePairRequest.getSubjectId();
         List<ConstraintModelForVariants> constraintModelsForVariants = potentialTimetableService.findAllNewVariantsForPair(pairId);
         List<PotentialVariants> potentialVariantsForPair = new ArrayList<>();
-        List<CompletableFuture<Boolean>> futures = new ArrayList<>();
-
+        List<CompletableFuture<PotentialVariants>> futures = new ArrayList<>();
+        log.info("Start find All Variants For Pair Fast with {} variants", constraintModelsForVariants.size());
         for (ConstraintModelForVariants currentConstraintModel : constraintModelsForVariants) {
-            CompletableFuture<Boolean> future = executeScriptDBAsync(currentConstraintModel.getConstraintModels());
-            futures.add(future.thenApply(result -> {
-                if (result) {
-                    potentialVariantsForPair.add(new PotentialVariants(currentConstraintModel.getPairId(), currentConstraintModel.getDayNumber(), currentConstraintModel.getSubjectName(),
-                            currentConstraintModel.getGroups(), currentConstraintModel.getTeacher(), currentConstraintModel.getFaculty(), currentConstraintModel.getCourse(),
-                            currentConstraintModel.getRoom(), currentConstraintModel.getPairNumber(), currentConstraintModel.getPairType()));
-                }
-                return result;
-            }));
+            CompletableFuture<PotentialVariants> future = executeScriptDBAsync(currentConstraintModel.getConstraintModels())
+                    .thenApply(result -> {
+                        if (result) {
+                            return new PotentialVariants(currentConstraintModel.getPairId(), currentConstraintModel.getDayNumber(), currentConstraintModel.getSubjectName(),
+                                    currentConstraintModel.getGroups(), currentConstraintModel.getTeacher(), currentConstraintModel.getFaculty(), currentConstraintModel.getCourse(),
+                                    currentConstraintModel.getRoom(), currentConstraintModel.getPairNumber(), currentConstraintModel.getPairType());
+                        }
+                        log.info("Result = FAILED");
+                        return null; // Если результат недействителен, возвращаем null
+                    });
+            futures.add(future);
         }
 
-        CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        try {
-            allFutures.get();
-        } catch (InterruptedException | ExecutionException e) {
-            Thread.currentThread().interrupt();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Ошибка выполнения: " + e.getMessage()));
-        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join(); // Ожидаем завершения всех асинхронных операций
+
+        // В методе findAllVariantsForPairFast
+        futures.forEach(f -> {
+            try {
+                PotentialVariants variant = f.get();
+                if (variant != null) {
+                    potentialVariantsForPair.add(variant);
+                } else {
+                    log.info("Result = FAILED");
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                Thread.currentThread().interrupt();
+                log.error("Execution failed", e);
+                return; // Прерываем выполнение в случае ошибки
+            }
+        });
 
         potentialTimetableService.saveConfigToFile(null);
         return ResponseEntity.ok(new VariantsWithVariantsSize(potentialVariantsForPair.size(), potentialVariantsForPair));
@@ -190,7 +208,7 @@ public class PotentialTimetableChangingController {
     @PostMapping("/room")
     @Transactional
     public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
-        String description = potentialTimetableService.changeRoom(changeRoomRequest);
+        PotentialTimetableLogs description = potentialTimetableService.changeRoom(changeRoomRequest);
         simpMessagingTemplate.convertAndSend(description);
 
 //        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
@@ -210,7 +228,7 @@ public class PotentialTimetableChangingController {
     @PostMapping("/day_and_pair_number_and_room")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
-        String description = potentialTimetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest.getSubjectId(), changeDayAndPairNumberRequest.getNewDayNumber(),
+        PotentialTimetableLogs description = potentialTimetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest.getSubjectId(), changeDayAndPairNumberRequest.getNewDayNumber(),
                 changeDayAndPairNumberRequest.getNewPairNumber(), changeDayAndPairNumberRequest.getNewRoom());
         simpMessagingTemplate.convertAndSend(description);
 
@@ -231,7 +249,7 @@ public class PotentialTimetableChangingController {
     @PostMapping("/teacher")
     @Transactional
     public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {
-        String description = potentialTimetableService.changeTeacher(changeTeacherRequest);
+        PotentialTimetableLogs description = potentialTimetableService.changeTeacher(changeTeacherRequest);
         simpMessagingTemplate.convertAndSend(description);
 
 //        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
@@ -250,16 +268,16 @@ public class PotentialTimetableChangingController {
         String pythonScriptPath = baseDir + pythonAlgoURL;
         String outputFilePath = baseDir + outputFileURL;
 
-
-        try (FileWriter fileWriter = new FileWriter(outputFilePath, false)) { // false - не добавлять, а переписывать
-            fileWriter.write(""); // Очищаем файл
-        }
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
-            writer.write("WORKING");
-        } catch (IOException e) {
-            log.error("Error writing to file: {}", outputFilePath, e);
-        }
+//
+//        try (FileWriter fileWriter = new FileWriter(outputFilePath, false)) { // false - не добавлять, а переписывать
+//            fileWriter.write(""); // Очищаем файл
+//        }
+//
+//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
+//            writer.write("WORKING");
+//        } catch (IOException e) {
+//            log.error("Error writing to file: {}", outputFilePath, e);
+//        }
 
         ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
         processBuilder.redirectErrorStream(true);
@@ -279,8 +297,8 @@ public class PotentialTimetableChangingController {
         }
 
         String firstLine = output.split("\n")[0];
-        log.info("Result = {}", firstLine);
         if ("FAILED".equals(firstLine)) {
+            log.info("Result = {}", firstLine);
             return false;
         } else if ("SUCCESSFULLY".equals(firstLine)) {
             return true;

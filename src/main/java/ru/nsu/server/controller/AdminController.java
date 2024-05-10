@@ -14,8 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import ru.nsu.server.model.dto.TimetableLogsDTO;
 import ru.nsu.server.payload.requests.*;
 import ru.nsu.server.payload.response.MessageResponse;
+import ru.nsu.server.services.OperationService;
 import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
 import ru.nsu.server.services.UserService;
 
@@ -33,6 +35,7 @@ public class AdminController {
     private final UserService userService;
 
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
+    private final OperationService operationService;
 
     private SimpMessagingTemplate simpMessagingTemplate;
 
@@ -40,10 +43,44 @@ public class AdminController {
     public AdminController(
             UserService userService,
             RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService,
-            SimpMessagingTemplate simpMessagingTemplate) {
+            SimpMessagingTemplate simpMessagingTemplate, OperationService operationService) {
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.userService = userService;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.operationService = operationService;
+    }
+
+    @Operation(
+            summary = "Получение всех логов потенциального расписания.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = TimetableLogsDTO[].class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @GetMapping("/get_logs/potential")
+    @Transactional
+    public ResponseEntity<?> getAllPotentialLogs() {
+        return ResponseEntity.ok(operationService.getAllPotentialTimetableLogs());
+    }
+
+    @Operation(
+            summary = "Получение всех логов актуального расписания.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = TimetableLogsDTO[].class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @GetMapping("/get_logs/actual")
+    @Transactional
+    public ResponseEntity<?> getAllActualLogs() {
+        return ResponseEntity.ok(operationService.getAllActualTimetableLogs());
+    }
+
+    @Operation(
+            summary = "Получение всех логов всех расписаний.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = TimetableLogsDTO[].class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @GetMapping("/get_logs/all")
+    @Transactional
+    public ResponseEntity<?> getAllTimetableLogs() {
+        return ResponseEntity.ok(operationService.getAllTimetableLogs());
     }
 
     //    @PreAuthorize("hasRole('ADMINISTRATOR')")

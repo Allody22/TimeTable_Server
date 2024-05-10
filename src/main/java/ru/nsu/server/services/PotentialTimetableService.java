@@ -13,6 +13,7 @@ import ru.nsu.server.model.config.PlanItem;
 import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.dto.ConstraintModel;
 import ru.nsu.server.model.dto.ConstraintModelForVariants;
+import ru.nsu.server.model.operations.PotentialTimetableLogs;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
 import ru.nsu.server.model.study_plan.Group;
 import ru.nsu.server.model.study_plan.Plan;
@@ -24,6 +25,7 @@ import ru.nsu.server.payload.requests.ChangeTeacherRequest;
 import ru.nsu.server.payload.response.FailureResponse;
 import ru.nsu.server.repository.*;
 import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
+import ru.nsu.server.repository.logs.PotentialTimetableLogsRepository;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -53,10 +55,11 @@ public class PotentialTimetableService {
     private final UserRepository userRepository;
 
     private final ObjectMapper objectMapper;
+    private final PotentialTimetableLogsRepository potentialTimetableLogsRepository;
 
     public PotentialTimetableService(PotentialWeekTimeTableRepository potentialWeekTimeTableRepository, RoomRepository roomRepository,
                                      PlanRepository planRepository, GroupRepository groupRepository, UniversalConstraintRepository universalConstraintRepository,
-                                     OperationsRepository operationsRepository, UserRepository userRepository, ObjectMapper objectMapper) {
+                                     OperationsRepository operationsRepository, UserRepository userRepository, ObjectMapper objectMapper, PotentialTimetableLogsRepository potentialTimetableLogsRepository) {
         this.potentialWeekTimeTableRepository = potentialWeekTimeTableRepository;
         this.roomRepository = roomRepository;
         this.planRepository = planRepository;
@@ -67,6 +70,7 @@ public class PotentialTimetableService {
         this.objectMapper = objectMapper;
 
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        this.potentialTimetableLogsRepository = potentialTimetableLogsRepository;
     }
 
     @Transactional
@@ -186,7 +190,7 @@ public class PotentialTimetableService {
 
 
     @Transactional
-    public String changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
+    public PotentialTimetableLogs changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
         Long pairId = changeDayAndPairNumberRequest.getSubjectId();
         PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
@@ -209,15 +213,33 @@ public class PotentialTimetableService {
         foundedTimeTablePart.setPairNumber(newPairNumber);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
 
-
-        return String.format("Перенос пары %s преподавателя %s в кабинете %s: %s, %s на %s, %s.",
+        String description = String.format("Перенос пары %s преподавателя %s в кабинете %s: %s, %s на %s, %s.",
                 subjectName, foundedTimeTablePart.getTeacher(), room,
                 getDayNameFromChange(oldDayNumber), getPairTime(oldPairNumber),
                 getDayNameToChange(newDayNumber), getPairTime(newPairNumber));
+
+        PotentialTimetableLogs currentLog = new PotentialTimetableLogs();
+        currentLog.setDescription(description);
+        currentLog.setDateOfCreation(new Date());
+        currentLog.setUserAccount("admin");
+        currentLog.setOperationName("/day_and_pair_number");
+        currentLog.setSubjectId(pairId);
+        currentLog.setNewDayNumber(newDayNumber);
+        currentLog.setNewPairNumber(newPairNumber);
+        currentLog.setNewRoom(foundedTimeTablePart.getRoom());
+        currentLog.setNewTeacherFullName(foundedTimeTablePart.getTeacher());
+
+        currentLog.setOldPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setOldRoom(foundedTimeTablePart.getRoom());
+        currentLog.setOldDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setOldTeacherFullName(foundedTimeTablePart.getTeacher());
+        potentialTimetableLogsRepository.save(currentLog);
+
+        return currentLog;
     }
 
     @Transactional
-    public String changeRoom(ChangeRoomRequest changeRoomRequest) {
+    public PotentialTimetableLogs changeRoom(ChangeRoomRequest changeRoomRequest) {
         Long pairId = changeRoomRequest.getSubjectId();
         PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
@@ -231,11 +253,29 @@ public class PotentialTimetableService {
         foundedTimeTablePart.setRoom(newRoomName);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
 
-        return String.format("Изменение кабинета пары %s в %s %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldRoom, newRoomName);
+        String description = String.format("Изменение кабинета пары %s в %s %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldRoom, newRoomName);
+
+        PotentialTimetableLogs currentLog = new PotentialTimetableLogs();
+        currentLog.setDescription(description);
+        currentLog.setDateOfCreation(new Date());
+        currentLog.setUserAccount("admin");
+        currentLog.setOperationName("/room");
+        currentLog.setSubjectId(pairId);
+        currentLog.setNewDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setNewPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setNewRoom(newRoomName);
+        currentLog.setNewTeacherFullName(foundedTimeTablePart.getTeacher());
+
+        currentLog.setOldPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setOldRoom(foundedTimeTablePart.getRoom());
+        currentLog.setOldDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setOldTeacherFullName(foundedTimeTablePart.getTeacher());
+        potentialTimetableLogsRepository.save(currentLog);
+        return currentLog;
     }
 
     @Transactional
-    public String changeTeacher(ChangeTeacherRequest changeTeacherRequest) {
+    public PotentialTimetableLogs changeTeacher(ChangeTeacherRequest changeTeacherRequest) {
         Long pairId = changeTeacherRequest.getSubjectId();
         PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(pairId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + pairId));
@@ -249,11 +289,31 @@ public class PotentialTimetableService {
 
         foundedTimeTablePart.setTeacher(newTeacher);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
-        return String.format("Изменение преподавателя пары %s в %s, %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldTeacher, newTeacher);
+
+        String description = String.format("Изменение преподавателя пары %s в %s, %s: с %s на %s.", foundedTimeTablePart.getSubjectName(), getDayNameToChange(foundedTimeTablePart.getDayNumber()), getPairTime(foundedTimeTablePart.getPairNumber()), oldTeacher, newTeacher);
+
+        PotentialTimetableLogs currentLog = new PotentialTimetableLogs();
+        currentLog.setDescription(description);
+        currentLog.setDateOfCreation(new Date());
+        currentLog.setUserAccount("admin");
+        currentLog.setOperationName("/teacher");
+        currentLog.setSubjectId(pairId);
+        currentLog.setNewDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setNewPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setNewRoom(foundedTimeTablePart.getRoom());
+        currentLog.setNewTeacherFullName(newTeacher);
+
+        currentLog.setOldPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setOldRoom(foundedTimeTablePart.getRoom());
+        currentLog.setOldDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setOldTeacherFullName(foundedTimeTablePart.getTeacher());
+        potentialTimetableLogsRepository.save(currentLog);
+
+        return currentLog;
     }
 
     @Transactional
-    public String changeDayAndPairNumberAndRoom(Long subjectId, Integer newDayNumber, Integer newPairNumber, String newRoomName) {
+    public PotentialTimetableLogs changeDayAndPairNumberAndRoom(Long subjectId, Integer newDayNumber, Integer newPairNumber, String newRoomName) {
         PotentialWeekTimetable foundedTimeTablePart = potentialWeekTimeTableRepository.findById(subjectId)
                 .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует пара с айди " + subjectId));
 
@@ -273,10 +333,30 @@ public class PotentialTimetableService {
         foundedTimeTablePart.setRoom(newRoomName);
         potentialWeekTimeTableRepository.save(foundedTimeTablePart);
 
-        return String.format("Изменение дня, времени и кабинета пары %s преподавателя %s: %s, %s, %s на %s, %s, %s.",
+        String description = String.format("Изменение дня, времени и кабинета пары %s преподавателя %s: %s, %s, %s на %s, %s, %s.",
                 foundedTimeTablePart.getSubjectName(), foundedTimeTablePart.getTeacher(),
                 getDayNameFromChange(oldDayNumber), getPairTime(oldPairNumber), oldRoom,
                 getDayNameToChange(newDayNumber), getPairTime(newPairNumber), newRoomName);
+
+        PotentialTimetableLogs currentLog = new PotentialTimetableLogs();
+        currentLog.setDescription(description);
+        currentLog.setDateOfCreation(new Date());
+        currentLog.setUserAccount("admin");
+        currentLog.setOperationName("/day_and_pair_number_and_room");
+        currentLog.setSubjectId(subjectId);
+
+        currentLog.setNewDayNumber(newDayNumber);
+        currentLog.setNewPairNumber(newPairNumber);
+        currentLog.setNewRoom(newRoomName);
+        currentLog.setNewTeacherFullName(foundedTimeTablePart.getTeacher());
+
+        currentLog.setOldPairNumber(foundedTimeTablePart.getPairNumber());
+        currentLog.setOldRoom(foundedTimeTablePart.getRoom());
+        currentLog.setOldDayNumber(foundedTimeTablePart.getDayNumber());
+        currentLog.setOldTeacherFullName(foundedTimeTablePart.getTeacher());
+        potentialTimetableLogsRepository.save(currentLog);
+
+        return currentLog;
     }
 
 

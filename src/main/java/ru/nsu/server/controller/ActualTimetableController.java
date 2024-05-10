@@ -14,7 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.model.current.WeekTimetable;
+import ru.nsu.server.model.user.Operations;
 import ru.nsu.server.payload.response.MessageResponse;
+import ru.nsu.server.repository.logs.ActualTimetableLogsRepository;
 import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
 import ru.nsu.server.services.TimetableService;
 
@@ -35,6 +37,19 @@ public class ActualTimetableController {
 
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
+    private final ActualTimetableLogsRepository actualTimetableLogsRepository;
+
+
+    @Operation(
+            summary = "Получение всех операций изменения, которые когда-либо происходили с потенциальном расписанием.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = Operations[].class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @GetMapping("/logs")
+    @Transactional
+    public ResponseEntity<?> getAllOperations() {
+        return ResponseEntity.ok(actualTimetableLogsRepository.findAllActualDto());
+    }
 
     @Operation(
             summary = "Получение всего актуального расписания для всех факультетов, групп и тп.",
