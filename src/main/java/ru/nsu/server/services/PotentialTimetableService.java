@@ -3,6 +3,7 @@ package ru.nsu.server.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.nsu.server.exception.ConflictChangesException;
@@ -14,6 +15,7 @@ import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.dto.ConstraintModel;
 import ru.nsu.server.model.dto.ConstraintModelForVariants;
 import ru.nsu.server.model.operations.PotentialTimetableLogs;
+import ru.nsu.server.model.potential.PotentialTimetableHash;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
 import ru.nsu.server.model.study_plan.Group;
 import ru.nsu.server.model.study_plan.Plan;
@@ -27,6 +29,7 @@ import ru.nsu.server.repository.*;
 import ru.nsu.server.repository.constraints.UniversalConstraintRepository;
 import ru.nsu.server.repository.logs.PotentialTimetableLogsRepository;
 
+import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -34,11 +37,20 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.stream.Collectors;import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
 
 @Service
 @Slf4j
 public class PotentialTimetableService {
+
+    private final PotentialTimetableHashRepository potentialTimetableHashRepository;
+    private EntityManager entityManager;
 
     private final PotentialWeekTimeTableRepository potentialWeekTimeTableRepository;
 
@@ -57,9 +69,10 @@ public class PotentialTimetableService {
     private final ObjectMapper objectMapper;
     private final PotentialTimetableLogsRepository potentialTimetableLogsRepository;
 
+    @Autowired
     public PotentialTimetableService(PotentialWeekTimeTableRepository potentialWeekTimeTableRepository, RoomRepository roomRepository,
                                      PlanRepository planRepository, GroupRepository groupRepository, UniversalConstraintRepository universalConstraintRepository,
-                                     OperationsRepository operationsRepository, UserRepository userRepository, ObjectMapper objectMapper, PotentialTimetableLogsRepository potentialTimetableLogsRepository) {
+                                     OperationsRepository operationsRepository, UserRepository userRepository, ObjectMapper objectMapper, PotentialTimetableLogsRepository potentialTimetableLogsRepository, PotentialTimetableHashRepository potentialTimetableHashRepository) {
         this.potentialWeekTimeTableRepository = potentialWeekTimeTableRepository;
         this.roomRepository = roomRepository;
         this.planRepository = planRepository;
@@ -71,6 +84,39 @@ public class PotentialTimetableService {
 
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.potentialTimetableLogsRepository = potentialTimetableLogsRepository;
+        this.potentialTimetableHashRepository = potentialTimetableHashRepository;
+    }
+
+    public String generateAndStoreTableHash() {
+        List<PotentialWeekTimetable> timetableList = potentialWeekTimeTableRepository.findAll();
+        StringBuilder sb = new StringBuilder();
+        timetableList.forEach(timetable -> sb.append(timetable.toString()));
+
+        String tableHash = hashString(sb.toString());
+        PotentialTimetableHash newHash = new PotentialTimetableHash();
+        newHash.setHashValue(tableHash);
+        potentialTimetableHashRepository.save(newHash);
+
+        return tableHash;
+    }
+
+    private String hashString(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Hashing algorithm not found", e);
+        }
+    }
+
+    public List<PotentialWeekTimetable> getTimetableByHash(String hashValue) {
+        PotentialTimetableHash timetableHash = potentialTimetableHashRepository.findByHashValue(hashValue)
+                .orElse(null);
+        // Hash not found
+        // Here we should ideally revert the database to the state that matches this hash
+        // But since we don't store each state, this is a conceptual method
+        return null;
     }
 
     @Transactional

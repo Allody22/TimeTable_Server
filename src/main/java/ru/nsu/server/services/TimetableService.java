@@ -11,7 +11,7 @@ import ru.nsu.server.exception.NotInDataBaseException;
 import ru.nsu.server.model.config.ConfigModel;
 import ru.nsu.server.model.config.PlanItem;
 import ru.nsu.server.model.constraints.UniversalConstraint;
-import ru.nsu.server.model.current.WeekTimetable;
+import ru.nsu.server.model.actual.WeekTimetable;
 import ru.nsu.server.model.dto.ConstraintModel;
 import ru.nsu.server.model.operations.ActualTimetableLogs;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;

@@ -47,11 +47,6 @@ public class PotentialTimetableChangingController {
 
     private final PotentialTimetableService potentialTimetableService;
 
-    private final OperationsRepository operationsRepository;
-
-    private final TimetableService timetableService;
-    private final PotentialTimetableLogsRepository potentialTimetableLogsRepository;
-
     private SimpMessagingTemplate simpMessagingTemplate;
 
 
@@ -71,13 +66,9 @@ public class PotentialTimetableChangingController {
     private String pythoConfigUrl;
 
     @Autowired
-    public PotentialTimetableChangingController(PotentialTimetableService potentialTimetableService,
-                                                OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate, TimetableService timetableService, PotentialTimetableLogsRepository potentialTimetableLogsRepository) {
+    public PotentialTimetableChangingController(PotentialTimetableService potentialTimetableService, SimpMessagingTemplate simpMessagingTemplate) {
         this.potentialTimetableService = potentialTimetableService;
-        this.operationsRepository = operationsRepository;
         this.simpMessagingTemplate = simpMessagingTemplate;
-        this.timetableService = timetableService;
-        this.potentialTimetableLogsRepository = potentialTimetableLogsRepository;
     }
 
 
@@ -91,7 +82,7 @@ public class PotentialTimetableChangingController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = VariantsWithVariantsSize.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
-    @PostMapping("/pair_variants_old")
+    @PostMapping("/pair_variants")
     @Transactional
     public ResponseEntity<?> findAllVariantsForPair(@RequestBody @Valid OnePairRequest onePairRequest) {
         Long pairId = onePairRequest.getSubjectId();
@@ -130,7 +121,7 @@ public class PotentialTimetableChangingController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = VariantsWithVariantsSize.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
-    @PostMapping("/pair_variants")
+    @PostMapping("/pair_variants_false")
     @Transactional
     public ResponseEntity<?> findAllVariantsForPairFast(@RequestBody @Valid OnePairRequest onePairRequest) {
         Long pairId = onePairRequest.getSubjectId();

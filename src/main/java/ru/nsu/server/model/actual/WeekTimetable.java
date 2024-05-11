@@ -1,4 +1,4 @@
-package ru.nsu.server.model.current;
+package ru.nsu.server.model.actual;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

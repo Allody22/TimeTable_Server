@@ -13,8 +13,6 @@ import java.util.List;
 @Service
 public class OperationService {
 
-
-
     private final PotentialTimetableLogsRepository potentialTimetableLogsRepository;
 
     private final ActualTimetableLogsRepository actualTimetableLogsRepository;

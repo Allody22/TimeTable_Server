@@ -15,7 +15,7 @@ public interface PotentialWeekTimeTableRepository extends JpaRepository<Potentia
 
     List<PotentialWeekTimetable> getAllByGroupsContaining(String group);
 
-    @Query(value = "SELECT * FROM potential_week_timetable WHERE groups SIMILAR TO :groupPattern", nativeQuery = true)
+    @Query(value = "SELECT * FROM potential_week_timetable WHERE :group = ANY(string_to_array(groups, ','))", nativeQuery = true)
     List<PotentialWeekTimetable> getAllByExactGroup(@Param("groupPattern") String groupPattern);
 
     Optional<List<PotentialWeekTimetable>> findByTeacherAndDayNumberAndPairNumber(String teacher, int dayNumber, int pairNumber);

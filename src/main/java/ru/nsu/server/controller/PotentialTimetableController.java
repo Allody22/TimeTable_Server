@@ -17,7 +17,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import ru.nsu.server.model.current.WeekTimetable;
+import ru.nsu.server.model.actual.WeekTimetable;
 import ru.nsu.server.model.user.Operations;
 import ru.nsu.server.payload.response.FailureResponse;
 import ru.nsu.server.payload.response.MessageResponse;

@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import ru.nsu.server.model.current.WeekTimetable;
+import ru.nsu.server.model.actual.WeekTimetable;
 import ru.nsu.server.model.user.Operations;
 import ru.nsu.server.payload.response.MessageResponse;
 import ru.nsu.server.repository.logs.ActualTimetableLogsRepository;
