@@ -49,7 +49,8 @@ public class ConstraintService {
     @Transactional
     public void saveNewUniversalConstraint(String constraintNameRu, String constraintNameEng, Integer
             group, Integer group1, Integer group2, String teacher, String teacher1, String teacher2,
-                                           Integer day, Integer period, Integer number, String subjectName) {
+                                           Integer day, Integer period, Integer number, String subjectName,
+                                           String room, String groups) {
         UniversalConstraint universalConstraint = new UniversalConstraint();
         universalConstraint.setDateOfCreation(new Date());
         universalConstraint.setConstraintName(constraintNameEng);
@@ -64,6 +65,8 @@ public class ConstraintService {
         universalConstraint.setPeriod(period);
         universalConstraint.setNumber(number);
         universalConstraint.setSubject(subjectName);
+        universalConstraint.setGroups(groups);
+        universalConstraint.setRoom(room);
         universalConstraintRepository.save(universalConstraint);
 
         StringBuilder sb = new StringBuilder();

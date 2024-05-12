@@ -62,7 +62,8 @@ public class ConstraintController {
         constraintService.saveNewUniversalConstraint(constraintNameRu, constraintNameEng, constraintRequest.getGroup(), constraintRequest.getGroup1(),
                 constraintRequest.getGroup2(), constraintRequest.getTeacher(), constraintRequest.getTeacher1(),
                 constraintRequest.getTeacher2(), constraintRequest.getDay(), constraintRequest.getPeriod(),
-                constraintRequest.getNumber(), constraintRequest.getSubjectName());
+                constraintRequest.getNumber(), constraintRequest.getSubjectName(),constraintRequest.getRoom(),
+                constraintRequest.getGroups());
         return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
     }
 
