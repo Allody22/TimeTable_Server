@@ -21,10 +21,7 @@ import ru.nsu.server.model.dto.ConstraintModelForVariants;
 import ru.nsu.server.model.operations.PotentialTimetableLogs;
 import ru.nsu.server.payload.requests.*;
 import ru.nsu.server.payload.response.*;
-import ru.nsu.server.repository.OperationsRepository;
-import ru.nsu.server.repository.logs.PotentialTimetableLogsRepository;
 import ru.nsu.server.services.PotentialTimetableService;
-import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
 import java.io.*;
@@ -49,7 +46,6 @@ public class PotentialTimetableChangingController {
 
     private SimpMessagingTemplate simpMessagingTemplate;
 
-
     @Value("${timetable.url.python.executable}")
     private String pythonExecutableURL;
 
@@ -73,7 +69,7 @@ public class PotentialTimetableChangingController {
 
 
     @Operation(
-            summary = "СТАРЫЙ",
+            summary = "РАБОЧИЙ ДОЛГИЙ ВАРИАНТ",
             description = """
                     Получается айди элемента из потенциального расписание, а затем перебираются все другие\s
                     дни недели + время пары + кабинеты, в которые можно поставить эту пару.
@@ -92,7 +88,7 @@ public class PotentialTimetableChangingController {
         for (ConstraintModelForVariants currentConstraintModel : constraintModelsForVariants) {
             CompletableFuture<Boolean> future = executeScriptDBAsync(currentConstraintModel.getConstraintModels());
             try {
-                boolean result = future.get(5, TimeUnit.SECONDS);
+                boolean result = future.get(50, TimeUnit.SECONDS);
                 if (result) {
                     potentialVariantsForPair.add(new PotentialVariants(currentConstraintModel.getPairId(), currentConstraintModel.getDayNumber(), currentConstraintModel.getSubjectName(),
                             currentConstraintModel.getGroups(), currentConstraintModel.getTeacher(), currentConstraintModel.getFaculty(), currentConstraintModel.getCourse(),
@@ -108,6 +104,7 @@ public class PotentialTimetableChangingController {
             }
         }
         potentialTimetableService.saveConfigToFile(null);
+        log.info("We found all variants for {} pair.", potentialVariantsForPair.size());
         return ResponseEntity.ok(new VariantsWithVariantsSize(potentialVariantsForPair.size(), potentialVariantsForPair));
     }
 
@@ -162,6 +159,8 @@ public class PotentialTimetableChangingController {
         });
 
         potentialTimetableService.saveConfigToFile(null);
+        log.info("We found all variants for {} pair.", potentialVariantsForPair.size());
+
         return ResponseEntity.ok(new VariantsWithVariantsSize(potentialVariantsForPair.size(), potentialVariantsForPair));
     }
 
@@ -289,9 +288,10 @@ public class PotentialTimetableChangingController {
 
         String firstLine = output.split("\n")[0];
         if ("FAILED".equals(firstLine)) {
-            log.info("Result = {}", firstLine);
+            log.info("Failed result = {}", firstLine);
             return false;
         } else if ("SUCCESSFULLY".equals(firstLine)) {
+            log.info("Successful result = {}", firstLine);
             return true;
         } else {
             log.info("Script output does not start with 'FAILED' or 'SUCCESSFULLY'.");

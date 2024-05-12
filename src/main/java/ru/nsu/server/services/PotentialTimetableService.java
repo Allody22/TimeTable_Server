@@ -15,7 +15,6 @@ import ru.nsu.server.model.constraints.UniversalConstraint;
 import ru.nsu.server.model.dto.ConstraintModel;
 import ru.nsu.server.model.dto.ConstraintModelForVariants;
 import ru.nsu.server.model.operations.PotentialTimetableLogs;
-import ru.nsu.server.model.potential.PotentialTimetableHash;
 import ru.nsu.server.model.potential.PotentialWeekTimetable;
 import ru.nsu.server.model.study_plan.Group;
 import ru.nsu.server.model.study_plan.Plan;
@@ -37,19 +36,12 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class PotentialTimetableService {
 
-    private final PotentialTimetableHashRepository potentialTimetableHashRepository;
     private EntityManager entityManager;
 
     private final PotentialWeekTimeTableRepository potentialWeekTimeTableRepository;
@@ -72,7 +64,7 @@ public class PotentialTimetableService {
     @Autowired
     public PotentialTimetableService(PotentialWeekTimeTableRepository potentialWeekTimeTableRepository, RoomRepository roomRepository,
                                      PlanRepository planRepository, GroupRepository groupRepository, UniversalConstraintRepository universalConstraintRepository,
-                                     OperationsRepository operationsRepository, UserRepository userRepository, ObjectMapper objectMapper, PotentialTimetableLogsRepository potentialTimetableLogsRepository, PotentialTimetableHashRepository potentialTimetableHashRepository) {
+                                     OperationsRepository operationsRepository, UserRepository userRepository, ObjectMapper objectMapper, PotentialTimetableLogsRepository potentialTimetableLogsRepository) {
         this.potentialWeekTimeTableRepository = potentialWeekTimeTableRepository;
         this.roomRepository = roomRepository;
         this.planRepository = planRepository;
@@ -84,40 +76,8 @@ public class PotentialTimetableService {
 
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.potentialTimetableLogsRepository = potentialTimetableLogsRepository;
-        this.potentialTimetableHashRepository = potentialTimetableHashRepository;
     }
 
-    public String generateAndStoreTableHash() {
-        List<PotentialWeekTimetable> timetableList = potentialWeekTimeTableRepository.findAll();
-        StringBuilder sb = new StringBuilder();
-        timetableList.forEach(timetable -> sb.append(timetable.toString()));
-
-        String tableHash = hashString(sb.toString());
-        PotentialTimetableHash newHash = new PotentialTimetableHash();
-        newHash.setHashValue(tableHash);
-        potentialTimetableHashRepository.save(newHash);
-
-        return tableHash;
-    }
-
-    private String hashString(String input) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Hashing algorithm not found", e);
-        }
-    }
-
-    public List<PotentialWeekTimetable> getTimetableByHash(String hashValue) {
-        PotentialTimetableHash timetableHash = potentialTimetableHashRepository.findByHashValue(hashValue)
-                .orElse(null);
-        // Hash not found
-        // Here we should ideally revert the database to the state that matches this hash
-        // But since we don't store each state, this is a conceptual method
-        return null;
-    }
 
     @Transactional
     public List<ConstraintModelForVariants> findAllNewVariantsForPair(Long pairId) {
@@ -179,7 +139,7 @@ public class PotentialTimetableService {
                 constraint.setName("exact_time");
                 constraint.setArgs(Map.of(
                         "teacher", currentPair.getTeacher(),
-                        "subject", currentPair.getSubjectName() + "_" + currentPair.getPairType(),
+                        "subject", currentPair.getSubjectName().replaceAll(" ","_") + "_" + currentPair.getPairType(),
                         "day", dayNumber,
                         "period", pairNumber,
                         "room", Integer.parseInt(currentRoom),
@@ -193,7 +153,7 @@ public class PotentialTimetableService {
                 constraint.setName("exact_time");
                 constraint.setArgs(Map.of(
                         "teacher", currentPair.getTeacher(),
-                        "subject", currentPair.getSubjectName() + "_" + currentPair.getPairType(),
+                        "subject", currentPair.getSubjectName().replaceAll(" ","_") + "_" + currentPair.getPairType(),
                         "day", currentPair.getDayNumber(),
                         "period", currentPair.getPairNumber(),
                         "room", Integer.parseInt(currentPair.getRoom()),
@@ -488,25 +448,42 @@ public class PotentialTimetableService {
         List<UniversalConstraint> universalConstraints = universalConstraintRepository.findAll();
         List<ConstraintModel> constraintModelList = new ArrayList<>();
 
+
         if (!universalConstraints.isEmpty()) {
             for (var currentConstraint : universalConstraints) {
                 ConstraintModel constraint = new ConstraintModel();
                 constraint.setName(currentConstraint.getConstraintName());
-                constraint.setArgs(Map.of(
-                        "day", currentConstraint.getDay(),
-                        "group", currentConstraint.getGroup(),
-                        "group_1", currentConstraint.getGroup1(),
-                        "group_2", currentConstraint.getGroup2(),
-                        "number", currentConstraint.getNumber(),
-                        "teacher", currentConstraint.getTeacher(),
-                        "period", currentConstraint.getPeriod(),
-                        "teacher_1", currentConstraint.getTeacher1(),
-                        "teacher_2", currentConstraint.getTeacher2(),
-                        "subject", currentConstraint.getSubject()
+                List<Integer> groupsList = Optional.ofNullable(currentConstraint.getGroups())
+                        .map(groupsForTest -> Arrays.stream(groupsForTest.split(","))
+                                .map(Integer::parseInt)
+                                .collect(Collectors.toList()))
+                        .orElse(Collections.emptyList());  // Handles null groups
+
+                String subject = null;
+                if (currentConstraint.getSubject() != null && currentConstraint.getSubjectType() != null){
+                    subject = currentConstraint.getSubject() + "_" + currentConstraint.getSubjectType();
+                    subject = subject.replaceAll(" ", "_");
+                }
+                constraint.setArgs(Map.ofEntries(
+                        Map.entry("day", Optional.ofNullable(currentConstraint.getDay()).orElse(0)),
+                        Map.entry("group", Optional.ofNullable(currentConstraint.getGroup()).orElse(0)),
+                        Map.entry("group_1", Optional.ofNullable(currentConstraint.getGroup1()).orElse(0)),
+                        Map.entry("group_2", Optional.ofNullable(currentConstraint.getGroup2()).orElse(0)),
+                        Map.entry("number", Optional.ofNullable(currentConstraint.getNumber()).orElse(0)),
+                        Map.entry("teacher", Optional.ofNullable(currentConstraint.getTeacher()).orElse("")),
+                        Map.entry("period", Optional.ofNullable(currentConstraint.getPeriod()).orElse(0)),
+                        Map.entry("teacher_1", Optional.ofNullable(currentConstraint.getTeacher1()).orElse("")),
+                        Map.entry("teacher_2", Optional.ofNullable(currentConstraint.getTeacher2()).orElse("")),
+                        Map.entry("subject", Optional.ofNullable(subject).orElse("")),
+                        Map.entry("groups", groupsList),
+                        Map.entry("room", Optional.ofNullable(currentConstraint.getRoom()).map(Integer::parseInt).orElse(0))  // Default to 0 if null
                 ));
+
+
                 constraintModelList.add(constraint);
             }
         }
+
 
         if (newConstraints != null && !newConstraints.isEmpty()) {
             constraintModelList.addAll(newConstraints);
@@ -517,13 +494,11 @@ public class PotentialTimetableService {
 
     public void toJson(ConfigModel configModel) throws IOException {
         String json = objectMapper.writeValueAsString(configModel);
-//        log.error("json = {}", json);
         String baseDir = System.getProperty("user.dir");
 
         String filePath = baseDir + "/TimeTable_Algo/src/resources/config_example.json";
 
         Files.writeString(Paths.get(filePath), json, Charset.forName("windows-1251"));
-
     }
 
     public void saveConfigToFile(List<ConstraintModel> newConstraints) {

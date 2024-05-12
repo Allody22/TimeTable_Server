@@ -6,4 +6,6 @@ import ru.nsu.server.model.study_plan.Plan;
 
 @Repository
 public interface PlanRepository extends JpaRepository<Plan, Long> {
+
+    boolean existsByTeacherAndSubjectAndSubjectTypeAndGroupsAndTimesInAWeek(String teacher, String subject, String subjectType, String groups, int timesInAWeek);
 }

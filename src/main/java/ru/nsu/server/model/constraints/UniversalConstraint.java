@@ -57,4 +57,13 @@ public class UniversalConstraint {
 
     @Column(name = "subject")
     private String subject;
+
+    @Column(name = "subject_type")
+    private String subjectType;
+
+    @Column(name = "groups_list")
+    private String groups;
+
+    @Column(name = "room")
+    private String room;
 }

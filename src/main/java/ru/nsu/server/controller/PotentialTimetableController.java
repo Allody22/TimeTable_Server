@@ -325,6 +325,8 @@ public class PotentialTimetableController {
     @PostMapping("/create_timetable_test_async")
     @Transactional
     public ResponseEntity<?> createTestTimeTableAsync() {
+        timetableService.saveTestData();
+
         CompletableFuture<Pair<String, Boolean>> future = executeScriptTestAsync();
 
         try {
@@ -358,10 +360,12 @@ public class PotentialTimetableController {
     @Transactional
     public ResponseEntity<?> createTestTimeTable() {
         try {
+            timetableService.saveTestData();
             var output = executeTimeTableScript(true);
             if (!output.getRight()) {
                 var failureResponse = parseFailure(output.getLeft());
 
+                log.error("algo failure = {}", failureResponse);
                 Operations operations = new Operations();
                 operations.setDateOfCreation(new Date());
                 operations.setUserAccount("Админ");
