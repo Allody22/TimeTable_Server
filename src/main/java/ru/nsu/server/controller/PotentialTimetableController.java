@@ -24,6 +24,7 @@ import ru.nsu.server.payload.response.MessageResponse;
 import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.repository.logs.PotentialTimetableLogsRepository;
 import ru.nsu.server.services.RoomGroupTeacherSubjectPlanService;
+import ru.nsu.server.services.TestLoaderService;
 import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
@@ -55,6 +56,7 @@ public class PotentialTimetableController {
     private final RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService;
 
     private final PotentialTimetableLogsRepository potentialTimetableLogsRepository;
+    private final TestLoaderService testLoaderService;
 
     @Value("${timetable.url.python.executable}")
     private String pythonExecutableURL;
@@ -76,12 +78,13 @@ public class PotentialTimetableController {
 
     @Autowired
     public PotentialTimetableController(TimetableService timetableService, RoomGroupTeacherSubjectPlanService roomGroupTeacherSubjectPlanService,
-                                        OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate, PotentialTimetableLogsRepository potentialTimetableLogsRepository) {
+                                        OperationsRepository operationsRepository, SimpMessagingTemplate simpMessagingTemplate, PotentialTimetableLogsRepository potentialTimetableLogsRepository, TestLoaderService testLoaderService) {
         this.timetableService = timetableService;
         this.roomGroupTeacherSubjectPlanService = roomGroupTeacherSubjectPlanService;
         this.operationsRepository = operationsRepository;
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.potentialTimetableLogsRepository = potentialTimetableLogsRepository;
+        this.testLoaderService = testLoaderService;
     }
 
     @Operation(
@@ -324,8 +327,8 @@ public class PotentialTimetableController {
             @ApiResponse(responseCode = "500", description = "Ошибка выполнения процесса составления расписания ", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")})})
     @PostMapping("/create_timetable_test_async")
     @Transactional
-    public ResponseEntity<?> createTestTimeTableAsync() {
-        timetableService.saveTestData();
+    public ResponseEntity<?> createTestTimeTableAsync() throws IOException {
+        testLoaderService.initializeDatabaseFromTestData();
 
         CompletableFuture<Pair<String, Boolean>> future = executeScriptTestAsync();
 
@@ -360,7 +363,7 @@ public class PotentialTimetableController {
     @Transactional
     public ResponseEntity<?> createTestTimeTable() {
         try {
-            timetableService.saveTestData();
+            testLoaderService.initializeDatabaseFromTestData();
             var output = executeTimeTableScript(true);
             if (!output.getRight()) {
                 var failureResponse = parseFailure(output.getLeft());
