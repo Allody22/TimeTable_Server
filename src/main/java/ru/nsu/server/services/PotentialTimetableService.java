@@ -97,7 +97,7 @@ public class PotentialTimetableService {
                             && currentRoom.equals(roomNumber)) {
                         continue;
                     }
-                    if (checkNewDayAndPairPeriodAndRoomWithoutException(currentRoom, dayNumber, pairNumber, foundedTimeTablePart)) {
+                    if (checkNewDayAndPairPeriodAndRoomAndGroupWithoutException(currentRoom, dayNumber, pairNumber,  foundedTimeTablePart)) {
                         List<ConstraintModel> constraintsList = changeOnePairExactly(foundedTimeTablePart, dayNumber, pairNumber, currentRoom);
                         ConstraintModelForVariants constraintModelForVariant = new ConstraintModelForVariants();
                         constraintModelForVariant.setPairId(pairId);
@@ -166,7 +166,7 @@ public class PotentialTimetableService {
         return constraintModelList;
     }
 
-    private boolean checkNewDayAndPairPeriodAndRoomWithoutException(String newRoom, Integer newDayNumber, Integer newPairNumber, PotentialWeekTimetable foundedTimeTablePart) {
+    private boolean checkNewDayAndPairPeriodAndRoomAndGroupWithoutException(String newRoom, Integer newDayNumber, Integer newPairNumber, PotentialWeekTimetable foundedTimeTablePart) {
         Optional<List<PotentialWeekTimetable>> optionalListOfPairsByTeacher = potentialWeekTimeTableRepository.findByTeacherAndDayNumberAndPairNumberAndRoom(foundedTimeTablePart.getTeacher(), newDayNumber, newPairNumber, newRoom);
         if (optionalListOfPairsByTeacher.isPresent()) {
             for (var currentPair : optionalListOfPairsByTeacher.get()) {
@@ -190,9 +190,19 @@ public class PotentialTimetableService {
                 }
             }
         }
-        //ПОЛУЧАЕТСЯ КАБИНЕТ СВОБОДЕН
+        String pairGroups = foundedTimeTablePart.getGroups();
+        String[] groupsArray = pairGroups.split(",");
+        for (var go : groupsArray) {
+            List<PotentialWeekTimetable> listOfGroupPairs = potentialWeekTimeTableRepository
+                    .getAllByExactGroupAndDayNumberAndPairNumber(go, newDayNumber, newPairNumber);
+            if (!listOfGroupPairs.isEmpty()) {
+                return false;
+            }
+        }
+        //ПОЛУЧАЕТСЯ ГРУППА СВОБОДЕН
         return true;
     }
+
 
 
     @Transactional

@@ -18,10 +18,12 @@ public interface PotentialWeekTimeTableRepository extends JpaRepository<Potentia
     @Query(value = "SELECT * FROM potential_week_timetable WHERE :group = ANY(string_to_array(groups, ','))", nativeQuery = true)
     List<PotentialWeekTimetable> getAllByExactGroup(@Param("group") String groupPattern);
 
+    @Query(value = "SELECT * FROM potential_week_timetable WHERE :group = ANY(string_to_array(groups, ',')) AND day_number = :day AND pair_number = :pair ", nativeQuery = true)
+    List<PotentialWeekTimetable> getAllByExactGroupAndDayNumberAndPairNumber(@Param("group") String groupPattern, @Param("day") Integer dayNumber,@Param("pair") Integer pairNumber);
+
     Optional<List<PotentialWeekTimetable>> findByTeacherAndDayNumberAndPairNumber(String teacher, int dayNumber, int pairNumber);
 
     Optional<List<PotentialWeekTimetable>> findByDayNumberAndPairNumberAndRoom(int dayNumber, int pairNumber, String roomNumber);
-
 
     List<PotentialWeekTimetable> getAllByTeacher(String teacher);
 
