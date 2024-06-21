@@ -199,7 +199,7 @@ public class PotentialTimetableService {
                 return false;
             }
         }
-        //ПОЛУЧАЕТСЯ ГРУППА СВОБОДЕН
+        //ПОЛУЧАЕТСЯ ГРУППА СВОБОДНА
         return true;
     }
 

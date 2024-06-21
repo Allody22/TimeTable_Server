@@ -71,7 +71,7 @@ public class PotentialTimetableController {
     private String javaTestResources;
 
     @Value("${timetable.url.python.config}")
-    private String pythoConfigUrl;
+    private String pythonConfigUrl;
 
     private SimpMessagingTemplate simpMessagingTemplate;
 
@@ -387,7 +387,7 @@ public class PotentialTimetableController {
     public Pair<String, Boolean> executeTimeTableScript(boolean isTest) throws IOException, InterruptedException {
         String baseDir = System.getProperty("user.dir");
         String jsonFilePath = baseDir + javaTestResources;
-        String inputURL = pythoConfigUrl;
+        String inputURL = pythonConfigUrl;
         if (!isTest) {
             timetableService.saveConfigToFile();
             jsonFilePath = baseDir + inputURL;
@@ -506,7 +506,7 @@ public class PotentialTimetableController {
             timetableService.saveNewPotentialTimeTable(list);
             return Pair.of(returnOutput, true);
         } else {
-            log.info("Script output does not start with 'FAILED' or 'SUCCESSFULLY'.");
+            log.info("Script output does not start with 'FAILED' or 'SUCCESSFULLY'. It is = " + firstLine);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
                 writer.write("");
             } catch (IOException e) {

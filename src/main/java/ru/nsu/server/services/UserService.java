@@ -12,10 +12,7 @@ import ru.nsu.server.repository.OperationsRepository;
 import ru.nsu.server.repository.RoleRepository;
 import ru.nsu.server.repository.UserRepository;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -53,6 +50,30 @@ public class UserService {
         return String.valueOf(randomPassword);
     }
 
+    public String changeUserRoles(String email, Set<String> stringRoles) {
+        User userByEmail = userRepository.findByEmail(email).
+                orElseThrow(() -> new RuntimeException("User not found"));
+        Set<Role> roles = new HashSet<>();
+        for (var sRole : stringRoles) {
+            Role userRole = roleRepository.findByName(ERole.valueOf(sRole))
+                    .orElseThrow();
+            roles.add(userRole);
+
+        }
+        userByEmail.setRoles(roles);
+
+        userRepository.save(userByEmail);
+
+        Operations operations = new Operations();
+        operations.setDateOfCreation(new Date());
+        operations.setUserAccount("Админ");
+        String description = "Пользователь с почтой '" + email + "' сменил роли ";
+        operations.setDescription(description);
+        operationsRepository.save(operations);
+
+        return description + ". Операция сделана пользователем " + operations.getUserAccount();
+    }
+
     public String saveNewAdmin(String email, String fullName, String phone) {
         User newUser = new User();
         newUser.setFullName(fullName);
@@ -82,7 +103,7 @@ public class UserService {
         operationsRepository.save(operations);
         log.info("admin password:{}", userPassword);
 
-        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
+        return description + ". Операция сделана пользователем " + operations.getUserAccount();
     }
 
     public String saveNewTeacher(String email, String fullName, String phone) {
@@ -116,7 +137,7 @@ public class UserService {
 
         log.info("teacher password:{}", userPassword);
 
-        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
+        return description + ". Операция сделана пользователем " + operations.getUserAccount();
     }
 
     public String saveNewUser(String email, String fullName, String phone) {
@@ -145,6 +166,6 @@ public class UserService {
         operationsRepository.save(operations);
         log.info("User password:{}", userPassword);
 
-        return description + ". Операция сделана пользователем пользователем " + operations.getUserAccount();
+        return description + ". Операция сделана пользователем " + operations.getUserAccount();
     }
 }

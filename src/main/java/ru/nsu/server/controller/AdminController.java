@@ -332,4 +332,23 @@ public class AdminController {
 
         return ResponseEntity.ok(new MessageResponse("Новый администратор успешно зарегистрирован."));
     }
+
+    @Operation(
+            summary = "Смена ролей у пользователя в БД.",
+            description = """
+                    Смена ролей у аккаунта определённого пользователя.
+                    Можно как убрать так и добавить роли.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Возвращается информация о пароле, который автоматически привязался к сгенерированному аккаунта", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", description = "Такая почта уже зарегистрированного в системе.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "500", content = @Content)})
+    @PostMapping("/change_roles")
+    @Transactional
+    public ResponseEntity<?> changeUserRoles(@Valid @RequestBody ChangeUserRolesRequest changeUserRolesRequest) {
+        String description = userService.changeUserRoles(changeUserRolesRequest.getEmail(), changeUserRolesRequest.getRoles());
+
+        simpMessagingTemplate.convertAndSend(description);
+
+        return ResponseEntity.ok(new MessageResponse("Новый администратор успешно зарегистрирован."));
+    }
 }
