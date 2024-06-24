@@ -146,6 +146,7 @@ public class ConstraintService {
                 constraintResponse.setSubject(constraintResponse.getSubject());
                 constraintResponse.setRoom(constraintResponse.getRoom());
                 constraintResponse.setSubjectType(currentConstraint.getSubjectType());
+                constraintResponse.setGroups(currentConstraint.getGroups());
                 constraintResponses.add(constraintResponse);
             }
         }
