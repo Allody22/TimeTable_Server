@@ -25,13 +25,18 @@ public class ConstraintService {
     private final ConstraintNamesRepository constraintNamesRepository;
 
     private final OperationsRepository operationsRepository;
+    private final PotentialTimetableService potentialTimetableService;
+    private final TimetableService timetableService;
+
 
     @Autowired
     public ConstraintService(ConstraintNamesRepository constraintNamesRepository, OperationsRepository operationsRepository,
-                             UniversalConstraintRepository universalConstraintRepository) {
+                             UniversalConstraintRepository universalConstraintRepository, PotentialTimetableService potentialTimetableService, TimetableService timetableService) {
         this.universalConstraintRepository = universalConstraintRepository;
         this.constraintNamesRepository = constraintNamesRepository;
         this.operationsRepository = operationsRepository;
+        this.potentialTimetableService = potentialTimetableService;
+        this.timetableService = timetableService;
     }
 
     @Transactional
@@ -126,10 +131,10 @@ public class ConstraintService {
                 ConstraintResponse constraintResponse = new ConstraintResponse();
                 constraintResponse.setConstraintNameRu(currentConstraint.getConstraintNameRu());
                 constraintResponse.setConstraintNameEng(currentConstraint.getConstraintName());
+                constraintResponse.setTeacher(currentConstraint.getTeacher());
                 constraintResponse.setDay(currentConstraint.getDay());
                 constraintResponse.setGroup(currentConstraint.getGroup());
-                constraintResponse.setDateOfCreation(currentConstraint.getDateOfCreation());
-                constraintResponse.setTeacher(currentConstraint.getTeacher());
+//                constraintResponse.setDateOfCreation(currentConstraint.getDateOfCreation());
                 constraintResponse.setPeriod(currentConstraint.getPeriod());
                 constraintResponse.setGroup1(currentConstraint.getGroup1());
                 constraintResponse.setGroup2(currentConstraint.getGroup2());

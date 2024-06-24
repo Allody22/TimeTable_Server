@@ -1,14 +1,11 @@
 package ru.nsu.server.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.nsu.server.exception.NotInDataBaseException;
 import ru.nsu.server.model.TestDataConfig;
 import ru.nsu.server.model.constants.ERole;
 import ru.nsu.server.model.constraints.UniversalConstraint;
@@ -62,6 +59,7 @@ public class TestLoaderService {
 
     @Transactional
     public void initializeDatabaseFromTestData() throws IOException {
+        log.info("start of initializeDatabaseFromTestData");
         TestDataConfig config = readTestDataConfig();
 
         // Save groups
@@ -107,6 +105,8 @@ public class TestLoaderService {
             }
         });
 
+        log.info("time for constraints");
+
         // Save constraints
         config.getConstraints().forEach(constraintData -> {
             UniversalConstraint uc = new UniversalConstraint();
@@ -118,12 +118,12 @@ public class TestLoaderService {
                 case "teachers_overlapping":
                     uc.setTeacher1((String) args.get("teacher_1"));
                     uc.setTeacher2((String) args.get("teacher_2"));
-                    uc.setConstraintNameRu("Перегруз учителей (?)");
+                    uc.setConstraintNameRu("Недопустимое пересечение преподавателей:");
                     break;
                 case "number_of_teaching_days":
                     uc.setTeacher((String) args.get("teacher"));
                     uc.setNumber((Integer) args.get("number"));
-                    uc.setConstraintNameRu("Максимальное кол-во рабочих дней");
+                    uc.setConstraintNameRu("Максимальное кол-во рабочих дней:");
 
                     break;
                 case "forbidden_period_for_teacher":
@@ -135,7 +135,7 @@ public class TestLoaderService {
                     } else {
                         uc.setGroup((Integer) args.get("group"));
                     }
-                    uc.setConstraintNameRu("Запрещенные порядковый номер пары для групп в определённый день");
+                    uc.setConstraintNameRu("Запрещенные порядковые номера пар для групп в определённый день: ");
                     break;
                 case "forbidden_day_for_teacher":
                 case "forbidden_day_for_group":
@@ -145,7 +145,7 @@ public class TestLoaderService {
                     } else {
                         uc.setGroup((Integer) args.get("group"));
                     }
-                    uc.setConstraintNameRu("Запрещенный день для преподавания для группы");
+                    uc.setConstraintNameRu("Запрещенный день для преподавания для группы:");
 
                     break;
                 case "exact_time":
@@ -160,7 +160,7 @@ public class TestLoaderService {
                         subjectName = subject.substring(0, lastIndex); // Extract the main part
                         subjectType = subject.substring(lastIndex + 1); // Extract the type part after the underscore
                     } else {
-                    log.error("No subject type");
+                        log.error("No subject type");
                     }
 
                     uc.setSubject(subjectName);
@@ -176,10 +176,11 @@ public class TestLoaderService {
                             .map(Object::toString)
                             .collect(Collectors.joining(","));
                     uc.setGroups(groupString); // Используйте group как строку или другое поле для списка групп
-                    uc.setConstraintNameRu("Обязательное время пары");
+                    uc.setConstraintNameRu("Обязательное время пары:");
 
                     break;
             }
+
 
             if (!universalConstraintRepository.existsByConstraintNameAndGroupAndGroup1AndGroup2AndTeacherAndTeacher1AndTeacher2AndDayAndPeriodAndNumberAndSubject(uc.getConstraintName(), uc.getGroup(),
                     uc.getGroup1(), uc.getGroup2(), uc.getTeacher(), uc.getTeacher1(), uc.getTeacher2(), uc.getDay(), uc.getPeriod(), uc.getNumber(), uc.getSubject())) {
@@ -218,9 +219,11 @@ public class TestLoaderService {
                 user.setPassword("securePassword123"); // Example password
                 user.setDateOfCreation(new Date()); // Current date and time
                 Set<Role> roles = new HashSet<>();
-                Role userRole = roleRepository.findByName(ERole.ROLE_USER).orElseThrow();
+                Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                        .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует роль " + ERole.ROLE_USER));
                 roles.add(userRole);
-                Role teacherRole = roleRepository.findByName(ERole.ROLE_TEACHER).orElseThrow();
+                Role teacherRole = roleRepository.findByName(ERole.ROLE_TEACHER)
+                        .orElseThrow(() -> new NotInDataBaseException("В базе данных отсутствует роль " + ERole.ROLE_TEACHER));
                 roles.add(teacherRole);
                 user.setRoles(roles);
                 userRepository.save(user);

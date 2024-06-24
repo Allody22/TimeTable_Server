@@ -104,7 +104,7 @@ public class PotentialTimetableChangingController {
             }
         }
         potentialTimetableService.saveConfigToFile(null);
-        log.info("We found all variants for {} pair.", potentialVariantsForPair.size());
+        log.info("We found all new variants for {} pair.", potentialVariantsForPair.size());
         return ResponseEntity.ok(new VariantsWithVariantsSize(potentialVariantsForPair.size(), potentialVariantsForPair));
     }
 
@@ -181,7 +181,6 @@ public class PotentialTimetableChangingController {
         var description = potentialTimetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
         simpMessagingTemplate.convertAndSend(description);
 
-//        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -201,7 +200,6 @@ public class PotentialTimetableChangingController {
         PotentialTimetableLogs description = potentialTimetableService.changeRoom(changeRoomRequest);
         simpMessagingTemplate.convertAndSend(description);
 
-//        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -222,7 +220,6 @@ public class PotentialTimetableChangingController {
                 changeDayAndPairNumberRequest.getNewPairNumber(), changeDayAndPairNumberRequest.getNewRoom());
         simpMessagingTemplate.convertAndSend(description);
 
-//        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -242,7 +239,6 @@ public class PotentialTimetableChangingController {
         PotentialTimetableLogs description = potentialTimetableService.changeTeacher(changeTeacherRequest);
         simpMessagingTemplate.convertAndSend(description);
 
-//        simpMessagingTemplate.convertAndSend(timetableService.getAllPotentialTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -258,16 +254,6 @@ public class PotentialTimetableChangingController {
         String pythonScriptPath = baseDir + pythonAlgoURL;
         String outputFilePath = baseDir + outputFileURL;
 
-//
-//        try (FileWriter fileWriter = new FileWriter(outputFilePath, false)) { // false - не добавлять, а переписывать
-//            fileWriter.write(""); // Очищаем файл
-//        }
-//
-//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
-//            writer.write("WORKING");
-//        } catch (IOException e) {
-//            log.error("Error writing to file: {}", outputFilePath, e);
-//        }
 
         ProcessBuilder processBuilder = new ProcessBuilder(pythonExecutablePath, pythonScriptPath, jsonFilePath);
         processBuilder.redirectErrorStream(true);
@@ -277,7 +263,7 @@ public class PotentialTimetableChangingController {
         String output = new BufferedReader(new InputStreamReader(process.getInputStream(), "windows-1251")).lines().collect(Collectors.joining("\n"));
         int exitCode = process.waitFor();
         if (exitCode != 0) {
-            log.error("output in script execution: " + output);
+            log.error("output in script execution: {}", output);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, Charset.forName("windows-1251")))) {
                 writer.write("FAILED");
             } catch (IOException e) {

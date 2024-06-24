@@ -1,12 +1,9 @@
 package ru.nsu.server.payload.response;
 
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -17,8 +14,8 @@ public class ConstraintResponse {
 
     private String constraintNameEng;
 
-    @JsonFormat(timezone = "Asia/Novosibirsk")
-    private Date dateOfCreation;
+//    @JsonFormat(timezone = "Asia/Novosibirsk")
+//    private Date dateOfCreation;
 
     private Long id;
 

@@ -18,5 +18,7 @@ $$
         SELECT last_user_id, id
         FROM roles
         WHERE name IN ('ROLE_USER', 'ROLE_GUEST', 'ROLE_TEACHER', 'ROLE_ADMINISTRATOR');
+
+--         WHERE name IN ('ROLE_USER', 'ROLE_GUEST', 'ROLE_TEACHER', 'ROLE_ADMINISTRATOR','ROLE_DISPATCHER');
     END
 $$;

@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.model.actual.WeekTimetable;
@@ -212,6 +213,7 @@ public class PotentialTimetableController {
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", description = "Ошибка выполнения процесса составления расписания ", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")})})
     @Transactional
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_timetable_db_async")
     public ResponseEntity<?> createTimeTableFromDBAsync() {
         CompletableFuture<Pair<String, Boolean>> future = executeScriptDBAsync();
@@ -245,6 +247,7 @@ public class PotentialTimetableController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/check_file")
     @Transactional
     public ResponseEntity<?> checkFile() throws IOException {
@@ -299,6 +302,7 @@ public class PotentialTimetableController {
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", description = "Ошибка выполнения процесса составления расписания ", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")})})
     @Transactional
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_timetable_db")
     public ResponseEntity<?> createTimeTableFromDB() {
         try {
@@ -326,6 +330,7 @@ public class PotentialTimetableController {
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", description = "Ошибка выполнения процесса составления расписания ", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")})})
     @PostMapping("/create_timetable_test_async")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createTestTimeTableAsync() throws IOException {
         testLoaderService.initializeDatabaseFromTestData();
@@ -359,6 +364,7 @@ public class PotentialTimetableController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", description = "Ошибка выполнения процесса составления расписания ", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")})})
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_timetable_test")
     @Transactional
     public ResponseEntity<?> createTestTimeTable() {

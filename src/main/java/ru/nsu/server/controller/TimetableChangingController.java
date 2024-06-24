@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.payload.requests.ChangeDayAndPairNumberAndRoomRequest;
@@ -18,7 +19,6 @@ import ru.nsu.server.payload.requests.ChangeDayAndPairNumberRequest;
 import ru.nsu.server.payload.requests.ChangeRoomRequest;
 import ru.nsu.server.payload.requests.ChangeTeacherRequest;
 import ru.nsu.server.payload.response.DataResponse;
-import ru.nsu.server.repository.logs.ActualTimetableLogsRepository;
 import ru.nsu.server.services.TimetableService;
 
 import javax.validation.Valid;
@@ -33,7 +33,6 @@ import javax.validation.Valid;
 public class TimetableChangingController {
 
     private final TimetableService timetableService;
-    private final ActualTimetableLogsRepository actualTimetableLogsRepository;
 
     private SimpMessagingTemplate simpMessagingTemplate;
 
@@ -47,13 +46,13 @@ public class TimetableChangingController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/day_and_pair_number")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
         String description = timetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
         simpMessagingTemplate.convertAndSend(description);
 
-//        simpMessagingTemplate.convertAndSend(timetableService.getAllTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -67,13 +66,13 @@ public class TimetableChangingController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/room")
     @Transactional
     public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
         String description = timetableService.changeRoom(changeRoomRequest);
         simpMessagingTemplate.convertAndSend(description);
 
-//        simpMessagingTemplate.convertAndSend(timetableService.getAllTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -88,12 +87,12 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/day_and_pair_number_and_room")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
         String description = timetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest);
         simpMessagingTemplate.convertAndSend(description);
 
-//        simpMessagingTemplate.convertAndSend(timetableService.getAllTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 
@@ -107,13 +106,13 @@ public class TimetableChangingController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/teacher")
     @Transactional
     public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {
         String description = timetableService.changeTeacher(changeTeacherRequest);
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
 
-//        simpMessagingTemplate.convertAndSend(timetableService.getAllTimeTable());
         return ResponseEntity.ok(new DataResponse(true));
     }
 }

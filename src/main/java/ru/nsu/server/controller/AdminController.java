@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.model.dto.TimetableLogsDTO;
@@ -56,6 +57,7 @@ public class AdminController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = TimetableLogsDTO[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @GetMapping("/get_logs/potential")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> getAllPotentialLogs() {
         return ResponseEntity.ok(operationService.getAllPotentialTimetableLogs());
@@ -67,6 +69,7 @@ public class AdminController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = TimetableLogsDTO[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @GetMapping("/get_logs/actual")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> getAllActualLogs() {
         return ResponseEntity.ok(operationService.getAllActualTimetableLogs());
@@ -78,6 +81,7 @@ public class AdminController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = TimetableLogsDTO[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @GetMapping("/get_logs/all")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> getAllTimetableLogs() {
         return ResponseEntity.ok(operationService.getAllTimetableLogs());
@@ -93,6 +97,7 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Группы с таким номером уже существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/create_group")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createGroup(@Valid @RequestBody GroupRequest groupRequest) {
         String groupNumber = groupRequest.getGroupNumber();
@@ -101,7 +106,7 @@ public class AdminController {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая группа уже существует."));
         }
         String description = roomGroupTeacherSubjectPlanService.saveNewGroup(groupNumber, groupRequest.getFaculty(), groupRequest.getCourse(), groupRequest.getStudentsNumber());
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Группа " + groupNumber + " успешно сохранена"));
     }
 
@@ -114,17 +119,17 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Группы с таким номером не существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/delete_group/{group}")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> deleteGroup(@Parameter(description = "Номер группы, которую мы хотим удалить", example = "21215") @PathVariable("group") @Valid @NotBlank String group) {
         if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой группа не существует."));
         }
         String description = roomGroupTeacherSubjectPlanService.deleteGroupByNumber(group);
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Группа " + group + " успешно удалена"));
     }
 
-    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
 
     @Operation(
             summary = "Добавление предмета в список допустимых предметов.",
@@ -136,6 +141,7 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Предмет с таким названием уже существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/create_subject")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createSubject(@Valid @RequestBody SubjectRequest subjectRequest) {
         String subjectName = subjectRequest.getName();
@@ -143,7 +149,7 @@ public class AdminController {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой предмет уже существует."));
         }
         String description = roomGroupTeacherSubjectPlanService.saveNewSubject(subjectName, subjectRequest.getTimesInAWeek());
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно сохранен"));
     }
 
@@ -157,17 +163,17 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Группы с таким номером не существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/delete_subject/{subjectName}")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> deleteSubject(@Parameter(description = "Название предмета", example = "Оптимизации java") @PathVariable("subjectName") @Valid @NotBlank String subjectName) {
         if (!roomGroupTeacherSubjectPlanService.ifExistBySubjectName(subjectName)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такого предмет не существует."));
         }
         String description = roomGroupTeacherSubjectPlanService.deleteSubject(subjectName);
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Предмет " + subjectName + " успешно удален"));
     }
 
-    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(
             summary = "Добавление новой комнаты.",
             description = """
@@ -178,6 +184,7 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Предмет с таким названием уже существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/create_room")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createRoom(@Valid @RequestBody RoomRequest roomRequest) {
         String roomName = roomRequest.getName();
@@ -185,7 +192,7 @@ public class AdminController {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такая комната уже существует."));
         }
         String description = roomGroupTeacherSubjectPlanService.saveNewRoom(roomName, roomRequest.getType(), roomRequest.getCapacity());
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Комната " + roomName + " успешно сохранен"));
     }
 
@@ -198,13 +205,14 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такой комнаты не существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/delete_room/{room}")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> deleteRoom(@Parameter(description = "Название предмета", example = "Оптимизации java") @PathVariable("room") @Valid @NotBlank String room) {
         if (!roomGroupTeacherSubjectPlanService.ifExistByRoomName(room)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Такой комнаты не существует."));
         }
         String description = roomGroupTeacherSubjectPlanService.deleteRoom(room);
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Комната " + room + " успешно удалена"));
     }
 
@@ -218,6 +226,7 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Количество пар в неделю не должно превышать 42.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/create_plan")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createPlan(@Valid @RequestBody PlanRequest planRequest) {
         if (planRequest.getTimesInAWeek() > 42) {
@@ -226,7 +235,7 @@ public class AdminController {
         }
         String description = roomGroupTeacherSubjectPlanService.saveNewPlan(planRequest.getTeacher(), planRequest.getSubject(), planRequest.getSubjectType(),
                 planRequest.getGroups(), planRequest.getTimesInAWeek());
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("План успешно сохранен"));
     }
 
@@ -240,13 +249,14 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Учёбного плана с таким айди не существуют.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @DeleteMapping("/delete_plan/{id}")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> deletePlan(@Parameter(description = "Айди учебного плана на отдельный предмет", example = "1") @PathVariable("id") @Valid @NotBlank Long id) {
         if (!roomGroupTeacherSubjectPlanService.ifExistPlanById(id)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Плана с айди " + id + " не существует."));
         }
         String description = roomGroupTeacherSubjectPlanService.deletePlanById(id);
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("План успешно удалён."));
     }
 
@@ -261,6 +271,7 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такая почта уже существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/register_student")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> registerNewStudent(@Valid @RequestBody RegistrationRequest registrationRequest) {
         String newUserEmail = registrationRequest.getEmail();
@@ -273,7 +284,7 @@ public class AdminController {
         String description = userService.saveNewUser(newUserEmail, registrationRequest.getFullName(),
                 registrationRequest.getPhone());
 
-        simpMessagingTemplate.convertAndSend(description);
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Новый пользователь успешно зарегистрирован."));
     }
 
@@ -287,6 +298,7 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такая почта уже зарегистрированного в системе.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/register_teacher")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> registerNewTeacher(@Valid @RequestBody RegistrationRequest registrationRequest) {
         String newUserEmail = registrationRequest.getEmail();
@@ -299,8 +311,7 @@ public class AdminController {
         String description = userService.saveNewTeacher(newUserEmail, registrationRequest.getFullName(),
                 registrationRequest.getPhone());
 
-        simpMessagingTemplate.convertAndSend(description);
-
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Новый учитель успешно зарегистрирован."));
     }
 
@@ -316,6 +327,7 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такая почта уже зарегистрированного в системе.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/register_admin")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> registerNewAdmin(@Valid @RequestBody RegistrationRequest registrationRequest) {
         String newUserEmail = registrationRequest.getEmail();
@@ -328,8 +340,7 @@ public class AdminController {
         String description = userService.saveNewAdmin(newUserEmail, registrationRequest.getFullName(),
                 registrationRequest.getPhone());
 
-        simpMessagingTemplate.convertAndSend(description);
-
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Новый администратор успешно зарегистрирован."));
     }
 
@@ -343,12 +354,12 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такая почта уже зарегистрированного в системе.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/change_roles")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeUserRoles(@Valid @RequestBody ChangeUserRolesRequest changeUserRolesRequest) {
         String description = userService.changeUserRoles(changeUserRolesRequest.getEmail(), changeUserRolesRequest.getRoles());
 
-        simpMessagingTemplate.convertAndSend(description);
-
+//        simpMessagingTemplate.convertAndSend(description);
         return ResponseEntity.ok(new MessageResponse("Новый администратор успешно зарегистрирован."));
     }
 }

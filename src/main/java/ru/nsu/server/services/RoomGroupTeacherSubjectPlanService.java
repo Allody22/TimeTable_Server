@@ -13,6 +13,7 @@ import ru.nsu.server.repository.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RoomGroupTeacherSubjectPlanService {
@@ -196,7 +197,10 @@ public class RoomGroupTeacherSubjectPlanService {
     }
 
     public List<String> getAllSubjects() {
-        return subjectRepository.getAll();
+        List<String> subjects = subjectRepository.getAll();
+        return subjects.stream()
+                .map(subject -> subject.replace("_", " "))
+                .collect(Collectors.toList());
     }
 
     public boolean ifExistBySubjectName(String subjectName) {

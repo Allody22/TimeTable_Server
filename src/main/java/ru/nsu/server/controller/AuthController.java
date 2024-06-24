@@ -98,6 +98,7 @@ public class AuthController {
 
             return ResponseEntity.ok(jwtAuthResponse);
         } catch (AuthenticationException e) {
+            log.info("Auth error : {}", e.getMessage());
             return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! Пожалуйста, проверьте введённые данные."));
         }
     }
