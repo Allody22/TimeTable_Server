@@ -39,4 +39,7 @@ public class ConstraintResponse {
 
     private String subject;
 
+    private String subjectType;
+
+    private String room;
 }

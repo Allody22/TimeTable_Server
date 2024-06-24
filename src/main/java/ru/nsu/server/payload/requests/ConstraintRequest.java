@@ -47,6 +47,9 @@ public class ConstraintRequest {
     @Schema(description = "Название предмета, на который может повлиять на ограничение.", example = "изучение java")
     private String subjectName = "";
 
+    @Schema(description = "Тип пары (лекция, практика и тп).", example = "prac")
+    private String subjectType = "";
+
     @Schema(description = "Комната", example = "2128")
     private String room = "";
 

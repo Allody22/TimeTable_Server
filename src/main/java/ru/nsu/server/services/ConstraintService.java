@@ -55,7 +55,7 @@ public class ConstraintService {
     public void saveNewUniversalConstraint(String constraintNameRu, String constraintNameEng, Integer
             group, Integer group1, Integer group2, String teacher, String teacher1, String teacher2,
                                            Integer day, Integer period, Integer number, String subjectName,
-                                           String room, String groups) {
+                                           String room, String groups, String subjectType) {
         UniversalConstraint universalConstraint = new UniversalConstraint();
         universalConstraint.setDateOfCreation(new Date());
         universalConstraint.setConstraintName(constraintNameEng);
@@ -72,6 +72,7 @@ public class ConstraintService {
         universalConstraint.setSubject(subjectName);
         universalConstraint.setGroups(groups);
         universalConstraint.setRoom(room);
+        universalConstraint.setSubjectType(subjectType);
         universalConstraintRepository.save(universalConstraint);
 
         StringBuilder sb = new StringBuilder();
@@ -143,6 +144,8 @@ public class ConstraintService {
                 constraintResponse.setTeacher2(currentConstraint.getTeacher2());
                 constraintResponse.setId(currentConstraint.getId());
                 constraintResponse.setSubject(constraintResponse.getSubject());
+                constraintResponse.setRoom(constraintResponse.getRoom());
+                constraintResponse.setSubjectType(currentConstraint.getSubjectType());
                 constraintResponses.add(constraintResponse);
             }
         }

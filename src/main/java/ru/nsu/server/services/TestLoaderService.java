@@ -59,7 +59,6 @@ public class TestLoaderService {
 
     @Transactional
     public void initializeDatabaseFromTestData() throws IOException {
-        log.info("start of initializeDatabaseFromTestData");
         TestDataConfig config = readTestDataConfig();
 
         // Save groups
@@ -105,7 +104,6 @@ public class TestLoaderService {
             }
         });
 
-        log.info("time for constraints");
 
         // Save constraints
         config.getConstraints().forEach(constraintData -> {
@@ -124,29 +122,36 @@ public class TestLoaderService {
                     uc.setTeacher((String) args.get("teacher"));
                     uc.setNumber((Integer) args.get("number"));
                     uc.setConstraintNameRu("Максимальное кол-во рабочих дней");
-
                     break;
                 case "forbidden_period_for_teacher":
-                case "forbidden_period_for_group":
                     uc.setDay((Integer) args.get("day"));
                     uc.setPeriod((Integer) args.get("period"));
                     if (args.containsKey("teacher")) {
                         uc.setTeacher((String) args.get("teacher"));
-                    } else {
+                    }
+                    uc.setConstraintNameRu("Запрещенный порядковый номер пары для преподавателя в определённый день");
+                    break;
+                case "forbidden_period_for_group":
+                    uc.setDay((Integer) args.get("day"));
+                    uc.setPeriod((Integer) args.get("period"));
+                    if (args.containsKey("group")) {
                         uc.setGroup((Integer) args.get("group"));
                     }
                     uc.setConstraintNameRu("Запрещенные порядковые номера пар для групп в определённый день");
                     break;
                 case "forbidden_day_for_teacher":
-                case "forbidden_day_for_group":
                     uc.setDay((Integer) args.get("day"));
                     if (args.containsKey("teacher")) {
                         uc.setTeacher((String) args.get("teacher"));
-                    } else {
+                    }
+                    uc.setConstraintNameRu("Запрещенный день для преподавания для преподавателя");
+                    break;
+                case "forbidden_day_for_group":
+                    uc.setDay((Integer) args.get("day"));
+                    if (args.containsKey("group")) {
                         uc.setGroup((Integer) args.get("group"));
                     }
                     uc.setConstraintNameRu("Запрещенный день для преподавания для группы");
-
                     break;
                 case "exact_time":
                     uc.setTeacher((String) args.get("teacher"));
@@ -177,7 +182,6 @@ public class TestLoaderService {
                             .collect(Collectors.joining(","));
                     uc.setGroups(groupString); // Используйте group как строку или другое поле для списка групп
                     uc.setConstraintNameRu("Обязательное время пары");
-
                     break;
             }
 
