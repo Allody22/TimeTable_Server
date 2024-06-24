@@ -79,7 +79,6 @@ public class AdminController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = TimetableLogsDTO[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @GetMapping("/get_logs/all")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> getAllTimetableLogs() {
         return ResponseEntity.ok(operationService.getAllTimetableLogs());
@@ -207,7 +206,6 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Комната " + room + " успешно удалена"));
     }
 
-    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(
             summary = "Создание учебного плана.",
             description = """
@@ -229,7 +227,6 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("План успешно сохранен"));
     }
 
-    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(
             summary = "Удаление учебного плана.",
             description = """
@@ -249,7 +246,6 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("План успешно удалён."));
     }
 
-    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(
             summary = "Регистрация нового аккаунта студента в системе.",
             description = """

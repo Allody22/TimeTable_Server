@@ -46,7 +46,6 @@ public class TimetableChangingController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/day_and_pair_number")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
@@ -66,7 +65,6 @@ public class TimetableChangingController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/room")
     @Transactional
     public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
@@ -87,7 +85,6 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/day_and_pair_number_and_room")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
         String description = timetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest);
@@ -106,7 +103,6 @@ public class TimetableChangingController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/teacher")
     @Transactional
     public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {

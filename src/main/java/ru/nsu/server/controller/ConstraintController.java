@@ -48,7 +48,6 @@ public class ConstraintController {
     }
 
 
-//    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('TEACHER') or hasRole('STAFF')")
     @Operation(
             summary = "Создание нового ограничения.",
             description = """
@@ -75,7 +74,6 @@ public class ConstraintController {
         return ResponseEntity.ok(new MessageResponse("Ограничение успешно сохранено"));
     }
 
-//    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('TEACHER') or hasRole('STAFF')")
     @Operation(
             summary = "Удаление ограничения по его айди.",
             description = """

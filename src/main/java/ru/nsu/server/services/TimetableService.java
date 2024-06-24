@@ -113,6 +113,11 @@ public class TimetableService {
     }
 
     @Transactional
+    public void deletePotentialTimetableDB(){
+        potentialWeekTimeTableRepository.deleteAll();
+    }
+
+    @Transactional
     public String changeRoom(ChangeRoomRequest changeRoomRequest) {
         Long pairId = changeRoomRequest.getSubjectId();
         WeekTimetable foundedTimeTablePart = weekTimeTableRepository.findById(pairId)

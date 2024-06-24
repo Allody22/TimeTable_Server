@@ -213,7 +213,6 @@ public class PotentialTimetableController {
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", description = "Ошибка выполнения процесса составления расписания ", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")})})
     @Transactional
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_timetable_db_async")
     public ResponseEntity<?> createTimeTableFromDBAsync() {
         CompletableFuture<Pair<String, Boolean>> future = executeScriptDBAsync();
@@ -247,7 +246,6 @@ public class PotentialTimetableController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/check_file")
     @Transactional
     public ResponseEntity<?> checkFile() throws IOException {
@@ -290,11 +288,17 @@ public class PotentialTimetableController {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/delete_actual_timetable_db")
     public ResponseEntity<?> deleteActualTimeTableFromDB() {
         timetableService.deleteActualTimetableDB();
-        return ResponseEntity.ok(new MessageResponse("Расписание удалено"));
+        return ResponseEntity.ok(new MessageResponse("Актуальное расписание удалено"));
+    }
+
+    @Transactional
+    @PostMapping("/delete_potential_timetable_db")
+    public ResponseEntity<?> deletePotentialTimeTableFromDB() {
+        timetableService.deletePotentialTimetableDB();
+        return ResponseEntity.ok(new MessageResponse("Потенциальное расписание удалено"));
     }
 
     @Operation(
@@ -310,7 +314,6 @@ public class PotentialTimetableController {
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", description = "Ошибка выполнения процесса составления расписания ", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")})})
     @Transactional
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_timetable_db")
     public ResponseEntity<?> createTimeTableFromDB() {
         try {
@@ -338,7 +341,6 @@ public class PotentialTimetableController {
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", description = "Ошибка выполнения процесса составления расписания ", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")})})
     @PostMapping("/create_timetable_test_async")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createTestTimeTableAsync() throws IOException {
         testLoaderService.initializeDatabaseFromTestData();
@@ -371,7 +373,6 @@ public class PotentialTimetableController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Ошибка при составлении расписания, связанная с невозможностью выполнения условий", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", description = "Ошибка выполнения процесса составления расписания ", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")})})
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/create_timetable_test")
     @Transactional
     public ResponseEntity<?> createTestTimeTable() {
