@@ -118,12 +118,12 @@ public class TestLoaderService {
                 case "teachers_overlapping":
                     uc.setTeacher1((String) args.get("teacher_1"));
                     uc.setTeacher2((String) args.get("teacher_2"));
-                    uc.setConstraintNameRu("Недопустимое пересечение преподавателей:");
+                    uc.setConstraintNameRu("Недопустимое пересечение преподавателей");
                     break;
                 case "number_of_teaching_days":
                     uc.setTeacher((String) args.get("teacher"));
                     uc.setNumber((Integer) args.get("number"));
-                    uc.setConstraintNameRu("Максимальное кол-во рабочих дней:");
+                    uc.setConstraintNameRu("Максимальное кол-во рабочих дней");
 
                     break;
                 case "forbidden_period_for_teacher":
@@ -135,7 +135,7 @@ public class TestLoaderService {
                     } else {
                         uc.setGroup((Integer) args.get("group"));
                     }
-                    uc.setConstraintNameRu("Запрещенные порядковые номера пар для групп в определённый день: ");
+                    uc.setConstraintNameRu("Запрещенные порядковые номера пар для групп в определённый день");
                     break;
                 case "forbidden_day_for_teacher":
                 case "forbidden_day_for_group":
@@ -145,7 +145,7 @@ public class TestLoaderService {
                     } else {
                         uc.setGroup((Integer) args.get("group"));
                     }
-                    uc.setConstraintNameRu("Запрещенный день для преподавания для группы:");
+                    uc.setConstraintNameRu("Запрещенный день для преподавания для группы");
 
                     break;
                 case "exact_time":
@@ -176,7 +176,7 @@ public class TestLoaderService {
                             .map(Object::toString)
                             .collect(Collectors.joining(","));
                     uc.setGroups(groupString); // Используйте group как строку или другое поле для списка групп
-                    uc.setConstraintNameRu("Обязательное время пары:");
+                    uc.setConstraintNameRu("Обязательное время пары");
 
                     break;
             }
