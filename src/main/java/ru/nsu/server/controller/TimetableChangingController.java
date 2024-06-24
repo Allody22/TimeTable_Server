@@ -47,6 +47,7 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/day_and_pair_number")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
         String description = timetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
@@ -66,6 +67,7 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/room")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
         String description = timetableService.changeRoom(changeRoomRequest);
@@ -85,6 +87,7 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/day_and_pair_number_and_room")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
         String description = timetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest);
@@ -104,6 +107,7 @@ public class TimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/teacher")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {
         String description = timetableService.changeTeacher(changeTeacherRequest);

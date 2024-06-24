@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.nsu.server.model.dto.ConstraintModel;
@@ -59,7 +60,7 @@ public class PotentialTimetableChangingController {
     private String javaTestResources;
 
     @Value("${timetable.url.python.config}")
-    private String pythoConfigUrl;
+    private String pythonConfigUrl;
 
     @Autowired
     public PotentialTimetableChangingController(PotentialTimetableService potentialTimetableService, SimpMessagingTemplate simpMessagingTemplate) {
@@ -79,6 +80,7 @@ public class PotentialTimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = VariantsWithVariantsSize.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/pair_variants")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> findAllVariantsForPair(@RequestBody @Valid OnePairRequest onePairRequest) {
         Long pairId = onePairRequest.getSubjectId();
@@ -176,6 +178,7 @@ public class PotentialTimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/day_and_pair_number")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumber(@RequestBody @Valid ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
         var description = potentialTimetableService.changeDayAndPairNumber(changeDayAndPairNumberRequest);
@@ -195,6 +198,7 @@ public class PotentialTimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/room")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeRoom(@RequestBody @Valid ChangeRoomRequest changeRoomRequest) {
         PotentialTimetableLogs description = potentialTimetableService.changeRoom(changeRoomRequest);
@@ -214,6 +218,7 @@ public class PotentialTimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/day_and_pair_number_and_room")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeDayAndPairNumberAndRoom(@RequestBody @Valid ChangeDayAndPairNumberAndRoomRequest changeDayAndPairNumberRequest) {
         PotentialTimetableLogs description = potentialTimetableService.changeDayAndPairNumberAndRoom(changeDayAndPairNumberRequest.getSubjectId(), changeDayAndPairNumberRequest.getNewDayNumber(),
@@ -234,6 +239,7 @@ public class PotentialTimetableChangingController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = DataResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/teacher")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeTeacher(@RequestBody @Valid ChangeTeacherRequest changeTeacherRequest) {
         PotentialTimetableLogs description = potentialTimetableService.changeTeacher(changeTeacherRequest);
@@ -245,7 +251,7 @@ public class PotentialTimetableChangingController {
     public Boolean executeTimeTableScript(boolean isTest, List<ConstraintModel> newConstraints) throws IOException, InterruptedException {
         String baseDir = System.getProperty("user.dir");
         String jsonFilePath = baseDir + javaTestResources;
-        String inputURL = pythoConfigUrl;
+        String inputURL = pythonConfigUrl;
         if (!isTest) {
             potentialTimetableService.saveConfigToFile(newConstraints);
             jsonFilePath = baseDir + inputURL;
