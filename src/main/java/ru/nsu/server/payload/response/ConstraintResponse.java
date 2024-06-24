@@ -14,9 +14,6 @@ public class ConstraintResponse {
 
     private String constraintNameEng;
 
-//    @JsonFormat(timezone = "Asia/Novosibirsk")
-//    private Date dateOfCreation;
-
     private Long id;
 
     private Integer group;

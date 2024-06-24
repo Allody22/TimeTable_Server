@@ -60,9 +60,9 @@ public class ConstraintController {
     @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('TEACHER') or hasRole('STAFF')")
     @Transactional
     public ResponseEntity<?> createConstraint(@Valid @RequestBody ConstraintRequest constraintRequest) {
-        if (!timetableService.getAllPotentialTimeTable().isEmpty()){
-            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! В уже составленное расписание нельзя вносить новые ограничения"));
-        }
+//        if (!timetableService.getAllPotentialTimeTable().isEmpty()){
+//            return ResponseEntity.badRequest().body(new MessageResponse("Ошибка! В уже составленное расписание нельзя вносить новые ограничения"));
+//        }
         String constraintNameRu = constraintRequest.getConstraintNameRu();
         String constraintNameEng = (constraintService.findConstraintByRuName(constraintNameRu)
                 .orElseThrow(() -> new NotInDataBaseException("Такого ограничения не существует или оно еще не поддерживается: " + constraintNameRu))).getName();

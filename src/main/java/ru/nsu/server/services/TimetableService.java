@@ -58,8 +58,6 @@ public class TimetableService {
 
     private final UserRepository userRepository;
     private final ActualTimetableLogsRepository actualTimetableLogsRepository;
-    private final SubjectRepository subjectRepository;
-    private final RoleRepository roleRepository;
 
     @Transactional
     public String changeDayAndPairNumber(ChangeDayAndPairNumberRequest changeDayAndPairNumberRequest) {
@@ -107,6 +105,11 @@ public class TimetableService {
         actualTimetableLogsRepository.save(currentLog);
 
         return description;
+    }
+
+    @Transactional
+    public void deleteActualTimetableDB(){
+        actualTimetableLogsRepository.deleteAll();
     }
 
     @Transactional
@@ -358,6 +361,7 @@ public class TimetableService {
     }
 
     public ConfigModel fillConfigFileUniversal(List<ConstraintModel> newConstraints) {
+
         ConfigModel configModel = new ConfigModel();
         List<Room> rooms = roomRepository.getAll();
         List<Group> groups = groupRepository.getAll();
@@ -374,7 +378,6 @@ public class TimetableService {
         List<UniversalConstraint> universalConstraints = universalConstraintRepository.findAll();
         List<ConstraintModel> constraintModelList = new ArrayList<>();
 
-
         if (!universalConstraints.isEmpty()) {
             for (var currentConstraint : universalConstraints) {
                 ConstraintModel constraint = new ConstraintModel();
@@ -389,6 +392,11 @@ public class TimetableService {
                 if (currentConstraint.getSubject() != null && currentConstraint.getSubjectType() != null){
                     subject = currentConstraint.getSubject().replaceAll(" ","_") + "_" + currentConstraint.getSubjectType();
                 }
+                String currentRoom = currentConstraint.getRoom();
+                Integer roomForResponse = 0;
+                if (currentRoom != null && !currentRoom.isBlank()){
+                    roomForResponse = Optional.of(currentRoom).map(Integer::parseInt).orElse(0);
+                }
                 constraint.setArgs(Map.ofEntries(
                         Map.entry("day", Optional.ofNullable(currentConstraint.getDay()).orElse(0)),
                         Map.entry("group", Optional.ofNullable(currentConstraint.getGroup()).orElse(0)),
@@ -401,7 +409,7 @@ public class TimetableService {
                         Map.entry("teacher_2", Optional.ofNullable(currentConstraint.getTeacher2()).orElse("")),
                         Map.entry("subject", Optional.ofNullable(subject).orElse("")),
                         Map.entry("groups", groupsList),
-                        Map.entry("room", Optional.ofNullable(currentConstraint.getRoom()).map(Integer::parseInt).orElse(0))  // Default to 0 if null
+                        Map.entry("room", roomForResponse)  // Default to 0 if null
                 ));
 
                 constraintModelList.add(constraint);

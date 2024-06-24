@@ -289,6 +289,14 @@ public class PotentialTimetableController {
         }
     }
 
+    @Transactional
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/delete_actual_timetable_db")
+    public ResponseEntity<?> deleteActualTimeTableFromDB() {
+        timetableService.deleteActualTimetableDB();
+        return ResponseEntity.ok(new MessageResponse("Расписание удалено"));
+    }
+
     @Operation(
             summary = "Создание нового потенциального расписания.",
             description = """
@@ -334,7 +342,6 @@ public class PotentialTimetableController {
     @Transactional
     public ResponseEntity<?> createTestTimeTableAsync() throws IOException {
         testLoaderService.initializeDatabaseFromTestData();
-
         CompletableFuture<Pair<String, Boolean>> future = executeScriptTestAsync();
 
         try {
