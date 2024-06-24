@@ -143,8 +143,8 @@ public class ConstraintService {
                 constraintResponse.setTeacher1(currentConstraint.getTeacher1());
                 constraintResponse.setTeacher2(currentConstraint.getTeacher2());
                 constraintResponse.setId(currentConstraint.getId());
-                constraintResponse.setSubject(constraintResponse.getSubject());
-                constraintResponse.setRoom(constraintResponse.getRoom());
+                constraintResponse.setSubject(currentConstraint.getSubject());
+                constraintResponse.setRoom(currentConstraint.getRoom());
                 constraintResponse.setSubjectType(currentConstraint.getSubjectType());
                 constraintResponse.setGroups(currentConstraint.getGroups());
                 constraintResponses.add(constraintResponse);

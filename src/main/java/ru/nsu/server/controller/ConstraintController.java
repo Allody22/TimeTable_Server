@@ -46,7 +46,9 @@ public class ConstraintController {
     @GetMapping("/get_all")
     @Transactional
     public ResponseEntity<?> getAllConstraints() {
-        return ResponseEntity.ok(constraintService.getAllConstraints());
+        var constrains = constraintService.getAllConstraints();
+        log.info(constrains.toString());
+        return ResponseEntity.ok(constrains);
     }
 
 
