@@ -57,7 +57,6 @@ public class AdminController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = TimetableLogsDTO[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @GetMapping("/get_logs/potential")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> getAllPotentialLogs() {
         return ResponseEntity.ok(operationService.getAllPotentialTimetableLogs());
@@ -69,7 +68,6 @@ public class AdminController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = TimetableLogsDTO[].class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @GetMapping("/get_logs/actual")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> getAllActualLogs() {
         return ResponseEntity.ok(operationService.getAllActualTimetableLogs());
@@ -87,7 +85,6 @@ public class AdminController {
         return ResponseEntity.ok(operationService.getAllTimetableLogs());
     }
 
-    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(
             summary = "Создание новой группы.",
             description = """
@@ -97,7 +94,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Группы с таким номером уже существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/create_group")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createGroup(@Valid @RequestBody GroupRequest groupRequest) {
         String groupNumber = groupRequest.getGroupNumber();
@@ -119,7 +115,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Группы с таким номером не существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/delete_group/{group}")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> deleteGroup(@Parameter(description = "Номер группы, которую мы хотим удалить", example = "21215") @PathVariable("group") @Valid @NotBlank String group) {
         if (!roomGroupTeacherSubjectPlanService.ifExistByGroupNumber(group)) {
@@ -141,7 +136,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Предмет с таким названием уже существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/create_subject")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createSubject(@Valid @RequestBody SubjectRequest subjectRequest) {
         String subjectName = subjectRequest.getName();
@@ -163,7 +157,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Группы с таким номером не существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/delete_subject/{subjectName}")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> deleteSubject(@Parameter(description = "Название предмета", example = "Оптимизации java") @PathVariable("subjectName") @Valid @NotBlank String subjectName) {
         if (!roomGroupTeacherSubjectPlanService.ifExistBySubjectName(subjectName)) {
@@ -184,7 +177,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Предмет с таким названием уже существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/create_room")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createRoom(@Valid @RequestBody RoomRequest roomRequest) {
         String roomName = roomRequest.getName();
@@ -205,7 +197,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такой комнаты не существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/delete_room/{room}")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> deleteRoom(@Parameter(description = "Название предмета", example = "Оптимизации java") @PathVariable("room") @Valid @NotBlank String room) {
         if (!roomGroupTeacherSubjectPlanService.ifExistByRoomName(room)) {
@@ -226,7 +217,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Количество пар в неделю не должно превышать 42.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/create_plan")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> createPlan(@Valid @RequestBody PlanRequest planRequest) {
         if (planRequest.getTimesInAWeek() > 42) {
@@ -249,7 +239,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Учёбного плана с таким айди не существуют.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @DeleteMapping("/delete_plan/{id}")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> deletePlan(@Parameter(description = "Айди учебного плана на отдельный предмет", example = "1") @PathVariable("id") @Valid @NotBlank Long id) {
         if (!roomGroupTeacherSubjectPlanService.ifExistPlanById(id)) {
@@ -271,7 +260,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такая почта уже существует.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/register_student")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> registerNewStudent(@Valid @RequestBody RegistrationRequest registrationRequest) {
         String newUserEmail = registrationRequest.getEmail();
@@ -298,7 +286,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такая почта уже зарегистрированного в системе.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/register_teacher")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> registerNewTeacher(@Valid @RequestBody RegistrationRequest registrationRequest) {
         String newUserEmail = registrationRequest.getEmail();
@@ -315,7 +302,6 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Новый учитель успешно зарегистрирован."));
     }
 
-    //    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(
             summary = "Регистрация нового аккаунта администратора в системе.",
             description = """
@@ -327,7 +313,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такая почта уже зарегистрированного в системе.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/register_admin")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> registerNewAdmin(@Valid @RequestBody RegistrationRequest registrationRequest) {
         String newUserEmail = registrationRequest.getEmail();
@@ -354,7 +339,6 @@ public class AdminController {
             @ApiResponse(responseCode = "400", description = "Такая почта уже зарегистрированного в системе.", content = {@Content(schema = @Schema(implementation = MessageResponse.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "500", content = @Content)})
     @PostMapping("/change_roles")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Transactional
     public ResponseEntity<?> changeUserRoles(@Valid @RequestBody ChangeUserRolesRequest changeUserRolesRequest) {
         String description = userService.changeUserRoles(changeUserRolesRequest.getEmail(), changeUserRolesRequest.getRoles());
